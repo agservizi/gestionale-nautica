@@ -1,0 +1,22 @@
+{
+  "name": "nautikapro-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Capacitor wrapper for NautikaPro",
+  "scripts": {
+    "cap:init": "cap init",
+    "cap:android": "cap add android",
+    "cap:ios": "cap add ios",
+    "cap:sync": "cap sync",
+    "cap:open:android": "cap open android",
+    "cap:open:ios": "cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/ios": "^6.0.0"
+  }
+}

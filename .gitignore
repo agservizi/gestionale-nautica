@@ -1,0 +1,7 @@
+.env
+/vendor/
+/backups/
+/uploads/
+/mobile/node_modules/
+/mobile/android/
+/mobile/ios/

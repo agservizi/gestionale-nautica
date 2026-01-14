@@ -1,0 +1,10 @@
+{
+  "appId": "com.nautikapro.app",
+  "appName": "NautikaPro",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://nautikapro.autoscuolaliana.it",
+    "cleartext": false
+  }
+}

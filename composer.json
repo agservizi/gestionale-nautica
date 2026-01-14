@@ -1,0 +1,9 @@
+{
+  "name": "nautikapro/gestionale",
+  "description": "Gestionale Scuola Nautica",
+  "type": "project",
+  "require": {
+    "dompdf/dompdf": "^2.0",
+    "phpoffice/phpspreadsheet": "^2.1"
+  }
+}
