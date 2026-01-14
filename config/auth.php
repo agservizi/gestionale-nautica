@@ -47,31 +47,40 @@ function clearRememberMeCookie() {
 }
 
 function setRememberMeToken($userId) {
-    $db = getDB();
-    $selector = bin2hex(random_bytes(12));
-    $validator = bin2hex(random_bytes(32));
-    $hash = hash('sha256', $validator);
-    $expires = date('Y-m-d H:i:s', time() + (REMEMBER_ME_DAYS * 86400));
+    try {
+        $db = getDB();
+        $selector = bin2hex(random_bytes(12));
+        $validator = bin2hex(random_bytes(32));
+        $hash = hash('sha256', $validator);
+        $expires = date('Y-m-d H:i:s', time() + (REMEMBER_ME_DAYS * 86400));
 
-    $stmt = $db->prepare("INSERT INTO auth_tokens (user_id, selector, token_hash, expires_at) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$userId, $selector, $hash, $expires]);
+        $stmt = $db->prepare("INSERT INTO auth_tokens (user_id, selector, token_hash, expires_at) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$userId, $selector, $hash, $expires]);
 
-    setRememberMeCookie($selector . ':' . $validator, time() + (REMEMBER_ME_DAYS * 86400));
+        setRememberMeCookie($selector . ':' . $validator, time() + (REMEMBER_ME_DAYS * 86400));
+    } catch (Exception $e) {
+        // Fail silently to avoid breaking login flow
+        clearRememberMeCookie();
+    }
 }
 
 function clearRememberMeToken($userId = null) {
-    $db = getDB();
-    if (!empty($_COOKIE[REMEMBER_ME_COOKIE])) {
-        $parts = explode(':', $_COOKIE[REMEMBER_ME_COOKIE], 2);
-        $selector = $parts[0] ?? '';
-        if ($selector !== '') {
-            $stmt = $db->prepare("DELETE FROM auth_tokens WHERE selector = ?");
-            $stmt->execute([$selector]);
+    try {
+        $db = getDB();
+        if (!empty($_COOKIE[REMEMBER_ME_COOKIE])) {
+            $parts = explode(':', $_COOKIE[REMEMBER_ME_COOKIE], 2);
+            $selector = $parts[0] ?? '';
+            if ($selector !== '') {
+                $stmt = $db->prepare("DELETE FROM auth_tokens WHERE selector = ?");
+                $stmt->execute([$selector]);
+            }
         }
-    }
-    if ($userId) {
-        $stmt = $db->prepare("DELETE FROM auth_tokens WHERE user_id = ?");
-        $stmt->execute([$userId]);
+        if ($userId) {
+            $stmt = $db->prepare("DELETE FROM auth_tokens WHERE user_id = ?");
+            $stmt->execute([$userId]);
+        }
+    } catch (Exception $e) {
+        // Ignore token cleanup failures
     }
     clearRememberMeCookie();
 }
@@ -93,10 +102,15 @@ function loginFromRememberMe() {
         return;
     }
 
-    $db = getDB();
-    $stmt = $db->prepare("SELECT * FROM auth_tokens WHERE selector = ? LIMIT 1");
-    $stmt->execute([$selector]);
-    $token = $stmt->fetch();
+    try {
+        $db = getDB();
+        $stmt = $db->prepare("SELECT * FROM auth_tokens WHERE selector = ? LIMIT 1");
+        $stmt->execute([$selector]);
+        $token = $stmt->fetch();
+    } catch (Exception $e) {
+        clearRememberMeCookie();
+        return;
+    }
 
     if (!$token || strtotime($token['expires_at']) < time()) {
         if ($token) {
