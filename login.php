@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="row justify-content-center align-items-center" style="min-height: 100vh;">
             <div class="col-md-5">
                 <div class="card shadow">
-                    <div class="card-header text-center">
+                    <div class="card-header text-center bg-primary text-white">
                         <h3 class="mb-0 text-white">
                             <i class="bi bi-compass"></i> <?php echo APP_NAME; ?>
                         </h3>
