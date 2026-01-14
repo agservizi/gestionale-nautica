@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initDateInputs();
     initDynamicPraticaFields();
     initAgendaDragDrop();
+    initConsentBanner();
 });
 
 // ============================================
@@ -142,6 +143,52 @@ function updateSidebarTooltips(enable) {
             link.removeAttribute('title');
         }
     });
+}
+
+// ============================================
+// COOKIE CONSENT BANNER
+// ============================================
+function initConsentBanner() {
+    const banner = document.getElementById('cookieBanner');
+    if (!banner) return;
+
+    const cookieName = banner.dataset.consentName;
+    if (!cookieName) return;
+
+    const existing = getCookieValue(cookieName);
+    if (existing) {
+        banner.classList.add('d-none');
+        return;
+    }
+
+    banner.classList.remove('d-none');
+
+    banner.querySelectorAll('[data-consent-action]').forEach(button => {
+        button.addEventListener('click', async () => {
+            const value = button.dataset.consentAction;
+            try {
+                const response = await fetch('/consent.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ consent: value })
+                });
+                if (!response.ok) {
+                    throw new Error('Consent failed');
+                }
+            } catch (e) {
+                // ignore errors to avoid blocking UX
+            }
+            banner.classList.add('d-none');
+        });
+    });
+}
+
+function getCookieValue(name) {
+    const safeName = name.replace(/([.$?*|{}\[\]\\\/\+^])/g, '\\$1');
+    const match = document.cookie.match(new RegExp('(?:^|; )' + safeName + '=([^;]*)'));
+    return match ? decodeURIComponent(match[1]) : null;
 }
 
 // ============================================

@@ -102,6 +102,37 @@ CREATE TABLE IF NOT EXISTS scheduled_jobs (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
+-- TABELLA CONSENSI COOKIE/PRIVACY
+-- ============================================
+CREATE TABLE IF NOT EXISTS cookie_consents (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NULL,
+    consent_value VARCHAR(20) NOT NULL,
+    ip_address VARCHAR(45),
+    user_agent VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_user (user_id),
+    INDEX idx_created (created_at),
+    FOREIGN KEY (user_id) REFERENCES utenti(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- TABELLA RICHIESTE GDPR
+-- ============================================
+CREATE TABLE IF NOT EXISTS gdpr_requests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NULL,
+    request_type ENUM('accesso','rettifica','cancellazione','limitazione','portabilita','opposizione') NOT NULL,
+    status ENUM('nuova','in_lavorazione','chiusa') DEFAULT 'nuova',
+    details TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_user (user_id),
+    INDEX idx_status (status),
+    FOREIGN KEY (user_id) REFERENCES utenti(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
 -- TABELLA CLIENTI
 -- ============================================
 CREATE TABLE IF NOT EXISTS clienti (

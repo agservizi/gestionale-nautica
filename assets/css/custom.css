@@ -591,3 +591,44 @@ html.sidebar-collapsed body .content {
 .sidebar .components::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.3);
 }
+
+/* Cookie banner */
+.cookie-banner {
+    position: fixed;
+    inset: auto 1.5rem 1.5rem 1.5rem;
+    z-index: 1060;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
+    padding: 1rem 1.25rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.cookie-banner__content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.cookie-banner__text {
+    flex: 1 1 320px;
+}
+
+.cookie-banner__actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 576px) {
+    .cookie-banner {
+        inset: auto 1rem 1rem 1rem;
+    }
+
+    .cookie-banner__actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}

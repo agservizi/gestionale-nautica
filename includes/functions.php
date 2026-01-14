@@ -725,6 +725,60 @@ function getNotificationSummary() {
     ];
 }
 
+// ============================================
+// CONSENSI COOKIE/PRIVACY
+// ============================================
+
+function getConsentCookieName() {
+    return 'nautikapro_consent';
+}
+
+function setConsentCookie($value, $days = 180) {
+    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    setcookie(getConsentCookieName(), $value, [
+        'expires' => time() + ($days * 86400),
+        'path' => '/',
+        'secure' => $isHttps,
+        'httponly' => false,
+        'samesite' => 'Lax'
+    ]);
+}
+
+function getConsentValue() {
+    return $_COOKIE[getConsentCookieName()] ?? null;
+}
+
+function saveConsent($value, $userId = null) {
+    $db = getDB();
+    $stmt = $db->prepare("INSERT INTO cookie_consents (user_id, consent_value, ip_address, user_agent) VALUES (?, ?, ?, ?)");
+    $stmt->execute([
+        $userId,
+        $value,
+        $_SERVER['REMOTE_ADDR'] ?? null,
+        $_SERVER['HTTP_USER_AGENT'] ?? null
+    ]);
+}
+
+function createGdprRequest($userId, $type, $details = null) {
+    $db = getDB();
+    $stmt = $db->prepare("INSERT INTO gdpr_requests (user_id, request_type, details) VALUES (?, ?, ?)");
+    $stmt->execute([
+        $userId,
+        $type,
+        $details
+    ]);
+    return $db->lastInsertId();
+}
+
+function getGdprRequestsByUser($userId, $limit = 10) {
+    $db = getDB();
+    $stmt = $db->prepare("SELECT * FROM gdpr_requests WHERE user_id = ? ORDER BY created_at DESC LIMIT ?");
+    $stmt->bindValue(1, $userId, PDO::PARAM_INT);
+    $stmt->bindValue(2, (int)$limit, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
 function buildSqlBackup() {
     $db = getDB();
     $tables = $db->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);

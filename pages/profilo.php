@@ -18,6 +18,7 @@ $stmt = $db->prepare("SELECT id, username, ruolo, password_hash FROM utenti WHER
 $stmt->execute([$user['id']]);
 $utente = $stmt->fetch();
 
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         if (!csrf_validate($_POST['csrf_token'] ?? '')) {
@@ -80,11 +81,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = 'Password aggiornata con successo.';
             $message_type = 'success';
         }
+
+        if ($action === 'gdpr_request') {
+            $type = $_POST['request_type'] ?? '';
+            $details = trim($_POST['details'] ?? '');
+
+            $allowed = ['accesso', 'rettifica', 'cancellazione', 'limitazione', 'portabilita', 'opposizione'];
+            if (!in_array($type, $allowed, true)) {
+                throw new Exception('Tipo richiesta non valido.');
+            }
+
+            if (function_exists('createGdprRequest')) {
+                createGdprRequest($utente['id'], $type, $details !== '' ? $details : null);
+            }
+
+            if (function_exists('logAudit')) {
+                logAudit('create', 'gdpr_request', $utente['id'], $type);
+            }
+
+            $message = 'Richiesta GDPR registrata. Ti risponderemo entro i termini di legge.';
+            $message_type = 'success';
+        }
     } catch (Exception $e) {
         $message = $e->getMessage();
         $message_type = 'danger';
     }
 }
+
+$gdprRequests = function_exists('getGdprRequestsByUser') ? getGdprRequestsByUser($utente['id'], 5) : [];
 ?>
 
 <?php include __DIR__ . '/../includes/sidebar.php'; ?>
@@ -158,6 +182,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <i class="bi bi-shield-lock"></i> Aggiorna password
                             </button>
                         </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Richieste GDPR</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">Puoi inviare una richiesta di accesso, rettifica o cancellazione dei dati.</p>
+                        <form method="POST" class="mb-3">
+                            <?php echo csrf_input(); ?>
+                            <input type="hidden" name="action" value="gdpr_request">
+                            <div class="mb-3">
+                                <label class="form-label">Tipo richiesta</label>
+                                <select name="request_type" class="form-select" required>
+                                    <option value="">Seleziona</option>
+                                    <option value="accesso">Accesso ai dati</option>
+                                    <option value="rettifica">Rettifica</option>
+                                    <option value="cancellazione">Cancellazione</option>
+                                    <option value="limitazione">Limitazione del trattamento</option>
+                                    <option value="portabilita">Portabilità</option>
+                                    <option value="opposizione">Opposizione</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Dettagli (opzionale)</label>
+                                <textarea name="details" class="form-control" rows="3" placeholder="Inserisci dettagli utili"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="bi bi-send"></i> Invia richiesta
+                            </button>
+                        </form>
+
+                        <?php if (!empty($gdprRequests)): ?>
+                            <div class="mt-3">
+                                <h6 class="mb-2">Richieste recenti</h6>
+                                <ul class="list-group">
+                                    <?php foreach ($gdprRequests as $req): ?>
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <strong><?php echo htmlspecialchars(ucfirst($req['request_type'])); ?></strong>
+                                                <div class="small text-muted"><?php echo htmlspecialchars(date('d/m/Y H:i', strtotime($req['created_at']))); ?></div>
+                                            </div>
+                                            <span class="badge bg-secondary text-uppercase"><?php echo htmlspecialchars($req['status']); ?></span>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
