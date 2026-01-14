@@ -40,6 +40,7 @@ $notifications = function_exists('getNotificationSummary') ? getNotificationSumm
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/assets/css/custom.css">
+    <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
     <script>
         (function() {
             try {
