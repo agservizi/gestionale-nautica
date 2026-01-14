@@ -46,6 +46,7 @@ function initSidebar() {
         const collapsed = sidebar.classList.contains('collapsed');
         localStorage.setItem('sidebarCollapsed', collapsed);
         document.body.classList.toggle('sidebar-collapsed', collapsed);
+        document.documentElement.classList.toggle('sidebar-collapsed', collapsed);
         updateSidebarTooltips(collapsed);
     }
 
@@ -57,6 +58,7 @@ function initSidebar() {
             sidebar.classList.remove('collapsed');
         }
         document.body.classList.toggle('sidebar-collapsed', saved);
+        document.documentElement.classList.toggle('sidebar-collapsed', saved);
         updateSidebarTooltips(sidebar.classList.contains('collapsed'));
     }
 

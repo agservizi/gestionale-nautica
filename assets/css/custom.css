@@ -60,6 +60,10 @@ body {
     width: var(--sidebar-collapsed-width);
 }
 
+html.sidebar-collapsed .sidebar {
+    width: var(--sidebar-collapsed-width);
+}
+
 .sidebar-header {
     padding: 1.5rem 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -259,7 +263,8 @@ body {
     background-color: var(--color-light);
 }
 
-body.sidebar-collapsed .content {
+body.sidebar-collapsed .content,
+html.sidebar-collapsed body .content {
     margin-left: var(--sidebar-collapsed-width);
     width: calc(100% - var(--sidebar-collapsed-width));
 }
