@@ -56,15 +56,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="col-md-5">
                 <div class="card shadow">
                     <div class="card-header text-center">
-                        <h4 class="mb-0 text-white">
+                        <h3 class="mb-0 text-white">
                             <i class="bi bi-compass"></i> <?php echo APP_NAME; ?>
-                        </h4>
+                        </h3>
                     </div>
                     <div class="card-body p-4">
-                        <div class="text-center fw-semibold text-primary mb-2 fs-4">
-                            <?php echo APP_NAME; ?>
-                        </div>
-                        <hr class="my-2">
                         <h5 class="text-center mb-4">Accesso</h5>
                         <?php if($error): ?>
                             <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
