@@ -18,6 +18,118 @@ session_set_cookie_params([
 
 session_start();
 
+// Remember me settings
+define('REMEMBER_ME_COOKIE', 'nautikapro_remember');
+define('REMEMBER_ME_DAYS', 30);
+
+function setAuthSession($user) {
+    session_regenerate_id(true);
+    $_SESSION['user_logged'] = true;
+    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['username'] = $user['username'];
+    $_SESSION['ruolo'] = $user['ruolo'];
+    $_SESSION['login_time'] = time();
+}
+
+function setRememberMeCookie($value, $expires) {
+    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    setcookie(REMEMBER_ME_COOKIE, $value, [
+        'expires' => $expires,
+        'path' => '/',
+        'secure' => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+}
+
+function clearRememberMeCookie() {
+    setRememberMeCookie('', time() - 3600);
+}
+
+function setRememberMeToken($userId) {
+    $db = getDB();
+    $selector = bin2hex(random_bytes(12));
+    $validator = bin2hex(random_bytes(32));
+    $hash = hash('sha256', $validator);
+    $expires = date('Y-m-d H:i:s', time() + (REMEMBER_ME_DAYS * 86400));
+
+    $stmt = $db->prepare("INSERT INTO auth_tokens (user_id, selector, token_hash, expires_at) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$userId, $selector, $hash, $expires]);
+
+    setRememberMeCookie($selector . ':' . $validator, time() + (REMEMBER_ME_DAYS * 86400));
+}
+
+function clearRememberMeToken($userId = null) {
+    $db = getDB();
+    if (!empty($_COOKIE[REMEMBER_ME_COOKIE])) {
+        $parts = explode(':', $_COOKIE[REMEMBER_ME_COOKIE], 2);
+        $selector = $parts[0] ?? '';
+        if ($selector !== '') {
+            $stmt = $db->prepare("DELETE FROM auth_tokens WHERE selector = ?");
+            $stmt->execute([$selector]);
+        }
+    }
+    if ($userId) {
+        $stmt = $db->prepare("DELETE FROM auth_tokens WHERE user_id = ?");
+        $stmt->execute([$userId]);
+    }
+    clearRememberMeCookie();
+}
+
+function loginFromRememberMe() {
+    if (isLogged() || empty($_COOKIE[REMEMBER_ME_COOKIE])) {
+        return;
+    }
+
+    $parts = explode(':', $_COOKIE[REMEMBER_ME_COOKIE], 2);
+    if (count($parts) !== 2) {
+        clearRememberMeCookie();
+        return;
+    }
+
+    [$selector, $validator] = $parts;
+    if ($selector === '' || $validator === '') {
+        clearRememberMeCookie();
+        return;
+    }
+
+    $db = getDB();
+    $stmt = $db->prepare("SELECT * FROM auth_tokens WHERE selector = ? LIMIT 1");
+    $stmt->execute([$selector]);
+    $token = $stmt->fetch();
+
+    if (!$token || strtotime($token['expires_at']) < time()) {
+        if ($token) {
+            $db->prepare("DELETE FROM auth_tokens WHERE id = ?")->execute([$token['id']]);
+        }
+        clearRememberMeCookie();
+        return;
+    }
+
+    $calc = hash('sha256', $validator);
+    if (!hash_equals($token['token_hash'], $calc)) {
+        $db->prepare("DELETE FROM auth_tokens WHERE id = ?")->execute([$token['id']]);
+        clearRememberMeCookie();
+        return;
+    }
+
+    $stmt = $db->prepare("SELECT id, username, ruolo, attivo FROM utenti WHERE id = ? LIMIT 1");
+    $stmt->execute([$token['user_id']]);
+    $user = $stmt->fetch();
+
+    if (!$user || (int)$user['attivo'] !== 1) {
+        $db->prepare("DELETE FROM auth_tokens WHERE id = ?")->execute([$token['id']]);
+        clearRememberMeCookie();
+        return;
+    }
+
+    setAuthSession($user);
+    $db->prepare("DELETE FROM auth_tokens WHERE id = ?")->execute([$token['id']]);
+    setRememberMeToken($user['id']);
+}
+
+loginFromRememberMe();
+
 // Funzione per verificare se l'utente è loggato
 function isLogged() {
     return isset($_SESSION['user_logged']) && $_SESSION['user_logged'] === true;
@@ -54,7 +166,7 @@ function requireAdmin() {
 }
 
 // Funzione per effettuare il login
-function doLogin($username, $password) {
+function doLogin($username, $password, $remember = false) {
     $db = getDB();
 
     $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
@@ -76,13 +188,11 @@ function doLogin($username, $password) {
         return false;
     }
 
-    session_regenerate_id(true);
-    $_SESSION['user_logged'] = true;
-    $_SESSION['user_id'] = $user['id'];
-    $_SESSION['username'] = $user['username'];
-    $_SESSION['ruolo'] = $user['ruolo'];
-    $_SESSION['login_time'] = time();
+    setAuthSession($user);
     clearLoginFailures($username, $ip);
+    if ($remember) {
+        setRememberMeToken($user['id']);
+    }
     if (function_exists('logAudit')) {
         logAudit('login', 'utente', $user['id']);
     }
@@ -93,6 +203,11 @@ function doLogin($username, $password) {
 function doLogout() {
     if (function_exists('logAudit') && isset($_SESSION['user_id'])) {
         logAudit('logout', 'utente', $_SESSION['user_id']);
+    }
+    if (isset($_SESSION['user_id'])) {
+        clearRememberMeToken($_SESSION['user_id']);
+    } else {
+        clearRememberMeToken();
     }
     $_SESSION = [];
     if (ini_get('session.use_cookies')) {

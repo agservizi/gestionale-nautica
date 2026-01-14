@@ -57,6 +57,13 @@
                     </a>
                 </li>
 
+                <li class="<?php echo $current_page == 'profilo' ? 'active' : ''; ?>">
+                    <a href="/pages/profilo.php" class="sidebar-link" data-tooltip="Profilo">
+                        <i class="bi bi-person-circle"></i>
+                        <span class="link-text">Profilo</span>
+                    </a>
+                </li>
+
                 <?php if(isAdmin()): ?>
                     <li class="<?php echo $current_page == 'utenti' ? 'active' : ''; ?>">
                         <a href="/pages/utenti.php" class="sidebar-link" data-tooltip="Utenti">

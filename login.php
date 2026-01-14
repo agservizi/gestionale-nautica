@@ -30,7 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($username === '' || $password === '') {
         $error = 'Inserisci username e password.';
     } else {
-        if (doLogin($username, $password)) {
+        $remember = isset($_POST['remember_me']);
+        if (doLogin($username, $password, $remember)) {
             header('Location: /pages/dashboard.php');
             exit;
         }
@@ -74,6 +75,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="mb-3">
                                 <label class="form-label">Password</label>
                                 <input type="password" name="password" class="form-control" required>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="remember_me" id="rememberMe">
+                                <label class="form-check-label" for="rememberMe">Mantieni accesso attivo</label>
                             </div>
                             <button type="submit" class="btn btn-primary w-100">
                                 <i class="bi bi-box-arrow-in-right"></i> Entra
