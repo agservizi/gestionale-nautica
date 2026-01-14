@@ -40,6 +40,16 @@ $notifications = function_exists('getNotificationSummary') ? getNotificationSumm
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/assets/css/custom.css">
+    <script>
+        (function() {
+            try {
+                var collapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+                if (collapsed) {
+                    document.documentElement.classList.add('sidebar-collapsed');
+                }
+            } catch (e) {}
+        })();
+    </script>
 </head>
 <body>
     <div class="wrapper">
