@@ -296,6 +296,18 @@ body.sidebar-collapsed .content {
     font-size: 1.1rem;
 }
 
+.icon-btn {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    min-height: 42px;
+    padding: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
 /* Cards */
 .card {
     border: none;
