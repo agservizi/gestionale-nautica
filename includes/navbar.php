@@ -11,8 +11,8 @@
                     <i class="bi bi-search"></i>
                 </button>
             </form>
-            <a href="/logout.php" class="btn btn-outline-danger">
-                <i class="bi bi-box-arrow-right"></i> Logout
+            <a href="/logout.php" class="btn btn-outline-danger" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Logout" aria-label="Logout">
+                <i class="bi bi-box-arrow-right"></i>
             </a>
         </div>
     </div>
