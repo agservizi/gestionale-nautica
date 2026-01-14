@@ -319,6 +319,11 @@ body.sidebar-collapsed .content {
     justify-content: center;
 }
 
+#searchForm .form-control {
+    height: 42px;
+    padding: 0 0.9rem;
+}
+
 /* Cards */
 .card {
     border: none;
