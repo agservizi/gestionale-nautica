@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </form>
                     </div>
                     <div class="card-footer text-center small text-muted">
-                        Anno 2025+ • Versione <?php echo APP_VERSION; ?>
+                        2026 • Versione 1.0.0
                     </div>
                 </div>
             </div>
