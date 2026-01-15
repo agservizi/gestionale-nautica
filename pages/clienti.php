@@ -190,29 +190,27 @@ $clienti = getClienti($search);
                     <input type="hidden" name="action" id="clienteAction" value="create">
                     <input type="hidden" name="id" id="clienteId">
                     
-                    <div class="mb-3">
-                        <label for="clienteNome" class="form-label">Nome *</label>
-                        <input type="text" class="form-control" id="clienteNome" name="nome" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="clienteCognome" class="form-label">Cognome *</label>
-                        <input type="text" class="form-control" id="clienteCognome" name="cognome" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="clienteTelefono" class="form-label">Telefono</label>
-                        <input type="text" class="form-control" id="clienteTelefono" name="telefono">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="clienteEmail" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="clienteEmail" name="email">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="clienteCodiceFiscale" class="form-label">Codice Fiscale</label>
-                        <input type="text" class="form-control" id="clienteCodiceFiscale" name="codice_fiscale" maxlength="16">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="clienteNome" class="form-label">Nome *</label>
+                            <input type="text" class="form-control" id="clienteNome" name="nome" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="clienteCognome" class="form-label">Cognome *</label>
+                            <input type="text" class="form-control" id="clienteCognome" name="cognome" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="clienteTelefono" class="form-label">Telefono</label>
+                            <input type="text" class="form-control" id="clienteTelefono" name="telefono">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="clienteEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="clienteEmail" name="email">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="clienteCodiceFiscale" class="form-label">Codice Fiscale</label>
+                            <input type="text" class="form-control" id="clienteCodiceFiscale" name="codice_fiscale" maxlength="16">
+                        </div>
                     </div>
 
                     <div class="mb-3">
