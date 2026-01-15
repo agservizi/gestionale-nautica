@@ -9,11 +9,40 @@ $message = '';
 $message_type = '';
 
 if($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
     if(!csrf_validate($_POST['csrf_token'] ?? '')) {
+        if ($action === 'create_cliente_quick') {
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => false, 'message' => 'Sessione scaduta. Riprova.']);
+            exit;
+        }
         $message = 'Sessione scaduta. Riprova.';
         $message_type = 'danger';
+    } elseif($action === 'create_cliente_quick') {
+        $nome = trim($_POST['nome'] ?? '');
+        $cognome = trim($_POST['cognome'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        if ($nome === '' || $cognome === '') {
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => false, 'message' => 'Nome e cognome sono obbligatori.']);
+            exit;
+        }
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => false, 'message' => 'Email non valida.']);
+            exit;
+        }
+        $id = createCliente($_POST);
+        logAudit('create', 'cliente', $id, $cognome . ' ' . $nome);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'ok' => true,
+            'id' => $id,
+            'label' => $cognome . ' ' . $nome
+        ]);
+        exit;
     } elseif(isset($_POST['action'])) {
-        switch($_POST['action']) {
+        switch($action) {
             case 'create':
                 if (empty($_POST['cliente_id']) || empty($_POST['tipo_pratica']) || empty($_POST['data_apertura'])) {
                     $message = 'Cliente, tipo pratica e data sono obbligatori.';
@@ -246,7 +275,9 @@ $anni = range(APP_YEAR_START, date('Y') + 1);
                                 <?php endforeach; ?>
                             </select>
                             <small class="text-muted">
-                                <a href="clienti.php" target="_blank">Crea nuovo cliente</a>
+                                <button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#modalClienteQuick">
+                                    Crea nuovo cliente
+                                </button>
                             </small>
                         </div>
                         <div class="col-md-3">
@@ -430,5 +461,91 @@ $anni = range(APP_YEAR_START, date('Y') + 1);
         </div>
     </div>
 </div>
+
+<!-- Modal Nuovo Cliente (Quick) -->
+<div class="modal fade" id="modalClienteQuick" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" id="formClienteQuick">
+                <?php echo csrf_input(); ?>
+                <input type="hidden" name="action" value="create_cliente_quick">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nuovo Cliente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nome *</label>
+                        <input type="text" class="form-control" name="nome" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Cognome *</label>
+                        <input type="text" class="form-control" name="cognome" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Telefono</label>
+                        <input type="text" class="form-control" name="telefono">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Note</label>
+                        <textarea class="form-control" name="note" rows="2"></textarea>
+                    </div>
+                    <div class="alert alert-danger d-none" id="clienteQuickError"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="submit" class="btn btn-primary">Salva Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script nonce="<?php echo $cspNonce; ?>">
+document.getElementById('formClienteQuick').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const errorBox = document.getElementById('clienteQuickError');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    errorBox.classList.add('d-none');
+    submitBtn.disabled = true;
+
+    try {
+        const formData = new FormData(form);
+        const response = await fetch('pratiche.php', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+        });
+        const data = await response.json();
+        if (!data.ok) {
+            errorBox.textContent = data.message || 'Errore durante il salvataggio.';
+            errorBox.classList.remove('d-none');
+            return;
+        }
+
+        const select = document.getElementById('selectCliente');
+        const option = document.createElement('option');
+        option.value = data.id;
+        option.textContent = data.label;
+        select.appendChild(option);
+        select.value = data.id;
+
+        const modalEl = document.getElementById('modalClienteQuick');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modalInstance.hide();
+        form.reset();
+    } catch (err) {
+        errorBox.textContent = 'Errore di rete. Riprova.';
+        errorBox.classList.remove('d-none');
+    } finally {
+        submitBtn.disabled = false;
+    }
+});
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
