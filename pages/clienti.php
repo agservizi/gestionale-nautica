@@ -105,7 +105,7 @@ $clienti = getClienti($search);
                                 <th>Nome</th>
                                 <th>Telefono</th>
                                 <th>Email</th>
-                                <th>Azioni</th>
+                                <th class="text-end">Azioni</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -121,21 +121,23 @@ $clienti = getClienti($search);
                                         <td><?php echo htmlspecialchars($cliente['nome']); ?></td>
                                         <td><?php echo htmlspecialchars($cliente['telefono'] ?? '-'); ?></td>
                                         <td><?php echo htmlspecialchars($cliente['email'] ?? '-'); ?></td>
-                                        <td>
-                                            <a href="cliente_dettaglio.php?id=<?php echo $cliente['id']; ?>" 
-                                               class="btn btn-sm btn-info" title="Dettaglio">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                            <button class="btn btn-sm btn-warning" 
-                                                    onclick="editCliente(<?php echo htmlspecialchars(json_encode($cliente)); ?>)"
-                                                    title="Modifica">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-danger" 
-                                                    onclick="deleteCliente(<?php echo $cliente['id']; ?>)"
-                                                    title="Elimina">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
+                                        <td class="text-end">
+                                            <div class="d-inline-flex gap-1">
+                                                <a href="cliente_dettaglio.php?id=<?php echo $cliente['id']; ?>" 
+                                                   class="btn btn-sm btn-info" title="Dettaglio">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <button class="btn btn-sm btn-warning" 
+                                                        onclick="editCliente(<?php echo htmlspecialchars(json_encode($cliente)); ?>)"
+                                                        title="Modifica">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" 
+                                                        onclick="deleteCliente(<?php echo $cliente['id']; ?>)"
+                                                        title="Elimina">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
