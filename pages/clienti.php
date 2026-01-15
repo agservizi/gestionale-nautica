@@ -19,6 +19,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $cognome = trim($_POST['cognome'] ?? '');
                 $email = trim($_POST['email'] ?? '');
                 $tipo_pratica = trim($_POST['tipo_pratica'] ?? '');
+                $codice_fiscale = strtoupper(trim($_POST['codice_fiscale'] ?? ''));
                 if ($nome === '' || $cognome === '') {
                     $message = 'Nome e cognome sono obbligatori.';
                     $message_type = 'danger';
@@ -26,6 +27,11 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 if ($tipo_pratica === '') {
                     $message = 'Tipo pratica è obbligatorio.';
+                    $message_type = 'danger';
+                    break;
+                }
+                if ($codice_fiscale !== '' && !preg_match('/^[A-Z0-9]{16}$/', $codice_fiscale)) {
+                    $message = 'Codice fiscale non valido.';
                     $message_type = 'danger';
                     break;
                 }
@@ -44,6 +50,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $cognome = trim($_POST['cognome'] ?? '');
                 $email = trim($_POST['email'] ?? '');
                 $tipo_pratica = trim($_POST['tipo_pratica'] ?? '');
+                $codice_fiscale = strtoupper(trim($_POST['codice_fiscale'] ?? ''));
                 if ($nome === '' || $cognome === '') {
                     $message = 'Nome e cognome sono obbligatori.';
                     $message_type = 'danger';
@@ -51,6 +58,11 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 if ($tipo_pratica === '') {
                     $message = 'Tipo pratica è obbligatorio.';
+                    $message_type = 'danger';
+                    break;
+                }
+                if ($codice_fiscale !== '' && !preg_match('/^[A-Z0-9]{16}$/', $codice_fiscale)) {
+                    $message = 'Codice fiscale non valido.';
                     $message_type = 'danger';
                     break;
                 }
@@ -199,6 +211,11 @@ $clienti = getClienti($search);
                     </div>
 
                     <div class="mb-3">
+                        <label for="clienteCodiceFiscale" class="form-label">Codice Fiscale</label>
+                        <input type="text" class="form-control" id="clienteCodiceFiscale" name="codice_fiscale" maxlength="16">
+                    </div>
+
+                    <div class="mb-3">
                         <label for="clienteTipoPratica" class="form-label">Tipo Pratica *</label>
                         <select class="form-select" id="clienteTipoPratica" name="tipo_pratica" required>
                             <option value="">-- Seleziona --</option>
@@ -275,6 +292,7 @@ function editCliente(cliente) {
     document.getElementById('clienteCognome').value = cliente.cognome;
     document.getElementById('clienteTelefono').value = cliente.telefono || '';
     document.getElementById('clienteEmail').value = cliente.email || '';
+    document.getElementById('clienteCodiceFiscale').value = cliente.codice_fiscale || '';
     document.getElementById('clienteTipoPratica').value = cliente.tipo_pratica || '';
     document.getElementById('clienteNumeroPatente').value = cliente.numero_patente || '';
     document.getElementById('clienteDataConseguimento').value = cliente.data_conseguimento_patente || '';

@@ -26,6 +26,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cognome = trim($_POST['cognome'] ?? '');
         $email = trim($_POST['email'] ?? '');
         $tipo_pratica = trim($_POST['tipo_pratica'] ?? '');
+        $codice_fiscale = strtoupper(trim($_POST['codice_fiscale'] ?? ''));
         if ($nome === '' || $cognome === '') {
             while (ob_get_level() > 0) {
                 ob_end_clean();
@@ -40,6 +41,14 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode(['ok' => false, 'message' => 'Tipo pratica è obbligatorio.']);
+            exit;
+        }
+        if ($codice_fiscale !== '' && !preg_match('/^[A-Z0-9]{16}$/', $codice_fiscale)) {
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['ok' => false, 'message' => 'Codice fiscale non valido.']);
             exit;
         }
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -511,6 +520,10 @@ $anni = range(APP_YEAR_START, date('Y') + 1);
                         <input type="email" class="form-control" name="email">
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">Codice Fiscale</label>
+                        <input type="text" class="form-control" name="codice_fiscale" id="clienteQuickCodiceFiscale" maxlength="16">
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Tipo Pratica *</label>
                         <select class="form-select" name="tipo_pratica" required>
                             <option value="">-- Seleziona --</option>
@@ -529,11 +542,11 @@ $anni = range(APP_YEAR_START, date('Y') + 1);
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Data Conseguimento</label>
-                            <input type="date" class="form-control" name="data_conseguimento_patente">
+                            <input type="date" class="form-control" name="data_conseguimento_patente" id="clienteQuickDataConseguimento">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Data Scadenza</label>
-                            <input type="date" class="form-control" name="data_scadenza_patente">
+                            <input type="date" class="form-control" name="data_scadenza_patente" id="clienteQuickDataScadenza">
                         </div>
                     </div>
                     <div class="mb-3">

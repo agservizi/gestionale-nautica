@@ -59,6 +59,25 @@ $numero_pratiche = count($pratiche);
                                 <span class="ms-3"><i class="bi bi-envelope"></i> <?php echo htmlspecialchars($cliente['email']); ?></span>
                             <?php endif; ?>
                         </p>
+                        <p class="mb-1">
+                            <?php if(!empty($cliente['codice_fiscale'])): ?>
+                                <span><i class="bi bi-card-text"></i> CF: <?php echo htmlspecialchars($cliente['codice_fiscale']); ?></span>
+                            <?php endif; ?>
+                            <?php if(!empty($cliente['tipo_pratica'])): ?>
+                                <span class="ms-3"><i class="bi bi-file-earmark-text"></i> <?php echo htmlspecialchars($cliente['tipo_pratica']); ?></span>
+                            <?php endif; ?>
+                        </p>
+                        <p class="mb-1">
+                            <?php if(!empty($cliente['numero_patente'])): ?>
+                                <span><i class="bi bi-card-checklist"></i> Patente: <?php echo htmlspecialchars($cliente['numero_patente']); ?></span>
+                            <?php endif; ?>
+                            <?php if(!empty($cliente['data_conseguimento_patente'])): ?>
+                                <span class="ms-3"><i class="bi bi-calendar-check"></i> Conseg.: <?php echo formatDate($cliente['data_conseguimento_patente']); ?></span>
+                            <?php endif; ?>
+                            <?php if(!empty($cliente['data_scadenza_patente'])): ?>
+                                <span class="ms-3"><i class="bi bi-calendar-x"></i> Scad.: <?php echo formatDate($cliente['data_scadenza_patente']); ?></span>
+                            <?php endif; ?>
+                        </p>
                         <?php if($cliente['note']): ?>
                             <p class="text-muted mb-0"><small><?php echo nl2br(htmlspecialchars($cliente['note'])); ?></small></p>
                         <?php endif; ?>

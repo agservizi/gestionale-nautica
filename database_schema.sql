@@ -141,6 +141,7 @@ CREATE TABLE IF NOT EXISTS clienti (
     cognome VARCHAR(100) NOT NULL,
     telefono VARCHAR(20),
     email VARCHAR(150),
+    codice_fiscale VARCHAR(16),
     tipo_pratica ENUM('Patente entro 12 miglia', 'Patente oltre 12 miglia', 'Patente D1', 'Rinnovo', 'Duplicato', 'Altro') NOT NULL DEFAULT 'Altro',
     numero_patente VARCHAR(50),
     data_conseguimento_patente DATE,

@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
     initTooltips();
     initDateInputs();
     initClienteTipoPratica();
+    initPatenteScadenzaCalc();
     initDynamicPraticaFields();
     initAgendaDragDrop();
     initConsentBanner();
@@ -377,6 +378,83 @@ function initClienteTipoPratica() {
 
     selectCliente.addEventListener('change', updateTipo);
     updateTipo();
+}
+
+function initPatenteScadenzaCalc() {
+    const clienteCf = document.getElementById('clienteCodiceFiscale');
+    const clienteConseguimento = document.getElementById('clienteDataConseguimento');
+    const clienteScadenza = document.getElementById('clienteDataScadenza');
+    bindPatenteCalc(clienteCf, clienteConseguimento, clienteScadenza);
+
+    const quickCf = document.getElementById('clienteQuickCodiceFiscale');
+    const quickConseguimento = document.getElementById('clienteQuickDataConseguimento');
+    const quickScadenza = document.getElementById('clienteQuickDataScadenza');
+    bindPatenteCalc(quickCf, quickConseguimento, quickScadenza);
+}
+
+function bindPatenteCalc(cfInput, conseguimentoInput, scadenzaInput) {
+    if (!cfInput || !conseguimentoInput || !scadenzaInput) return;
+
+    const updateScadenza = () => {
+        const cf = (cfInput.value || '').trim().toUpperCase();
+        const conseguimento = conseguimentoInput.value;
+        if (!cf || !conseguimento) return;
+
+        const birthDate = getBirthDateFromCF(cf);
+        if (!birthDate) return;
+
+        const consegDate = new Date(conseguimento + 'T00:00:00');
+        if (Number.isNaN(consegDate.getTime())) return;
+
+        let age = consegDate.getFullYear() - birthDate.getFullYear();
+        const m = consegDate.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && consegDate.getDate() < birthDate.getDate())) {
+            age--;
+        }
+
+        const validYears = age >= 60 ? 5 : 10;
+        const scadenza = new Date(consegDate);
+        scadenza.setFullYear(scadenza.getFullYear() + validYears);
+        scadenzaInput.value = scadenza.toISOString().slice(0, 10);
+    };
+
+    cfInput.addEventListener('input', updateScadenza);
+    conseguimentoInput.addEventListener('change', updateScadenza);
+}
+
+function getBirthDateFromCF(cf) {
+    if (!/^[A-Z0-9]{16}$/.test(cf)) return null;
+
+    const year = parseInt(cf.substr(6, 2), 10);
+    const monthChar = cf.substr(8, 1);
+    const dayRaw = parseInt(cf.substr(9, 2), 10);
+
+    const monthMap = {
+        A: 1,
+        B: 2,
+        C: 3,
+        D: 4,
+        E: 5,
+        H: 6,
+        L: 7,
+        M: 8,
+        P: 9,
+        R: 10,
+        S: 11,
+        T: 12
+    };
+
+    if (!monthMap[monthChar]) return null;
+    const day = dayRaw > 40 ? dayRaw - 40 : dayRaw;
+    if (day < 1 || day > 31) return null;
+
+    const currentYear = new Date().getFullYear();
+    const currentYY = currentYear % 100;
+    const fullYear = year <= currentYY ? 2000 + year : 1900 + year;
+
+    const date = new Date(fullYear, monthMap[monthChar] - 1, day);
+    if (Number.isNaN(date.getTime())) return null;
+    return date;
 }
 
 function initAgendaDragDrop() {
