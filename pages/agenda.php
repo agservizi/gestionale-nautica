@@ -226,7 +226,7 @@ $startWeekday = (int)$firstDay->format('N'); // 1 (Mon) - 7 (Sun)
                                                         <?php echo csrf_input(); ?>
                                                         <input type="hidden" name="action" value="delete">
                                                         <input type="hidden" name="id" value="<?php echo $guida['id']; ?>">
-                                                        <button type="submit" class="btn btn-sm btn-danger" title="Elimina">
+                                                        <button type="submit" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Elimina">
                                                             <i class="bi bi-trash"></i>
                                                         </button>
                                                     </form>

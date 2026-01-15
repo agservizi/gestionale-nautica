@@ -200,8 +200,8 @@ $anni = range(APP_YEAR_START, date('Y') + 1);
                                         </td>
                                         <td class="text-end">
                                             <div class="d-inline-flex gap-1">
-                                                <a href="pratica_dettaglio.php?id=<?php echo $pratica['id']; ?>" 
-                                                   class="btn btn-sm btn-info" title="Dettaglio">
+                                                                <a href="pratica_dettaglio.php?id=<?php echo $pratica['id']; ?>" 
+                                                                    class="btn btn-sm btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Dettaglio">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
                                             </div>

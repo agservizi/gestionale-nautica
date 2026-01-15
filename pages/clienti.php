@@ -124,17 +124,17 @@ $clienti = getClienti($search);
                                         <td class="text-end">
                                             <div class="d-inline-flex gap-1">
                                                 <a href="cliente_dettaglio.php?id=<?php echo $cliente['id']; ?>" 
-                                                   class="btn btn-sm btn-info" title="Dettaglio">
+                                                   class="btn btn-sm btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Dettaglio">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
                                                 <button class="btn btn-sm btn-warning" 
-                                                        onclick="editCliente(<?php echo htmlspecialchars(json_encode($cliente)); ?>)"
-                                                        title="Modifica">
+                                                    onclick="editCliente(<?php echo htmlspecialchars(json_encode($cliente)); ?>)"
+                                                    data-bs-toggle="tooltip" data-bs-placement="top" title="Modifica">
                                                     <i class="bi bi-pencil"></i>
                                                 </button>
                                                 <button class="btn btn-sm btn-danger" 
-                                                        onclick="deleteCliente(<?php echo $cliente['id']; ?>)"
-                                                        title="Elimina">
+                                                    onclick="deleteCliente(<?php echo $cliente['id']; ?>)"
+                                                    data-bs-toggle="tooltip" data-bs-placement="top" title="Elimina">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </div>
