@@ -12,7 +12,10 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     if(!csrf_validate($_POST['csrf_token'] ?? '')) {
         if ($action === 'create_cliente_quick') {
-            header('Content-Type: application/json');
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+            header('Content-Type: application/json; charset=utf-8');
             echo json_encode(['ok' => false, 'message' => 'Sessione scaduta. Riprova.']);
             exit;
         }
@@ -23,18 +26,27 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cognome = trim($_POST['cognome'] ?? '');
         $email = trim($_POST['email'] ?? '');
         if ($nome === '' || $cognome === '') {
-            header('Content-Type: application/json');
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+            header('Content-Type: application/json; charset=utf-8');
             echo json_encode(['ok' => false, 'message' => 'Nome e cognome sono obbligatori.']);
             exit;
         }
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            header('Content-Type: application/json');
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+            header('Content-Type: application/json; charset=utf-8');
             echo json_encode(['ok' => false, 'message' => 'Email non valida.']);
             exit;
         }
         $id = createCliente($_POST);
         logAudit('create', 'cliente', $id, $cognome . ' ' . $nome);
-        header('Content-Type: application/json');
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        header('Content-Type: application/json; charset=utf-8');
         echo json_encode([
             'ok' => true,
             'id' => $id,
@@ -521,7 +533,18 @@ document.getElementById('formClienteQuick').addEventListener('submit', async fun
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
             body: formData
         });
-        const data = await response.json();
+        const text = await response.text();
+        let data = null;
+        try {
+            data = JSON.parse(text);
+        } catch (parseErr) {
+            data = null;
+        }
+        if (!data) {
+            errorBox.textContent = text ? text.trim() : 'Risposta non valida dal server.';
+            errorBox.classList.remove('d-none');
+            return;
+        }
         if (!data.ok) {
             errorBox.textContent = data.message || 'Errore durante il salvataggio.';
             errorBox.classList.remove('d-none');
