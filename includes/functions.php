@@ -395,18 +395,27 @@ function getAgendaById($id) {
 
 function createAgenda($data) {
     $db = getDB();
+    $praticaId = isset($data['pratica_id']) && $data['pratica_id'] !== ''
+        ? (int)$data['pratica_id']
+        : null;
+    $tipoLezione = isset($data['tipo_lezione']) && $data['tipo_lezione'] !== ''
+        ? $data['tipo_lezione']
+        : null;
+    $note = isset($data['note']) && $data['note'] !== ''
+        ? $data['note']
+        : null;
     $stmt = $db->prepare("
         INSERT INTO agenda_guide (cliente_id, pratica_id, data_guida, orario_inizio, orario_fine, tipo_lezione, note)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ");
     $stmt->execute([
         $data['cliente_id'],
-        $data['pratica_id'] ?? null,
+        $praticaId,
         $data['data_guida'],
         $data['orario_inizio'],
         $data['orario_fine'],
-        $data['tipo_lezione'] ?? null,
-        $data['note'] ?? null
+        $tipoLezione,
+        $note
     ]);
     return $db->lastInsertId();
 }
