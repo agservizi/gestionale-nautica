@@ -32,58 +32,45 @@ $numero_pratiche = count($pratiche);
 <div id="content" class="content">
     
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
-        <div class="container-fluid">
-            <div class="d-flex align-items-center gap-2">
-                <button type="button" id="sidebarCollapseTop" class="btn btn-primary sidebar-toggle-btn">
-                    <i class="bi bi-list"></i>
-                </button>
+    <?php include __DIR__ . '/../includes/navbar.php'; ?>
+    
+    <!-- Page Content -->
+    <div class="container-fluid py-4">
+        <div class="row mb-4">
+            <div class="col-12 d-flex justify-content-between align-items-center">
                 <a href="clienti.php" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Torna ai Clienti
                 </a>
             </div>
-            <div class="ms-auto">
-                <form class="d-flex" id="searchForm">
-                    <input class="form-control me-2" type="search" placeholder="Cerca cliente..." id="searchCliente">
-                    <button class="btn btn-outline-primary" type="submit">
-                        <i class="bi bi-search"></i>
-                    </button>
-                </form>
-            </div>
         </div>
-    </nav>
-    
-    <!-- Page Content -->
-    <div class="container-fluid py-4">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-md-8">
-                                <h1 class="h3 mb-2">
-                                    <?php echo htmlspecialchars($cliente['cognome'] . ' ' . $cliente['nome']); ?>
-                                </h1>
-                                <p class="mb-1">
-                                    <?php if($cliente['telefono']): ?>
-                                        <i class="bi bi-telephone"></i> <?php echo htmlspecialchars($cliente['telefono']); ?>
-                                    <?php endif; ?>
-                                    <?php if($cliente['email']): ?>
-                                        <span class="ms-3"><i class="bi bi-envelope"></i> <?php echo htmlspecialchars($cliente['email']); ?></span>
-                                    <?php endif; ?>
-                                </p>
-                                <?php if($cliente['note']): ?>
-                                    <p class="text-muted mb-0"><small><?php echo nl2br(htmlspecialchars($cliente['note'])); ?></small></p>
-                                <?php endif; ?>
-                            </div>
-                            <div class="col-md-4 text-md-end">
-                                <div class="mb-2">
-                                    <strong>Pratiche:</strong> <?php echo $numero_pratiche; ?>
-                                </div>
-                                <div class="mb-2">
-                                    <strong>Totale Speso:</strong> <span class="text-success"><?php echo formatMoney($totale_speso); ?></span>
-                                </div>
-                                <small class="text-muted">Cliente dal: <?php echo formatDate($cliente['data_creazione']); ?></small>
-                            </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="h3 mb-2">
+                            <?php echo htmlspecialchars($cliente['cognome'] . ' ' . $cliente['nome']); ?>
+                        </h1>
+                        <p class="mb-1">
+                            <?php if($cliente['telefono']): ?>
+                                <i class="bi bi-telephone"></i> <?php echo htmlspecialchars($cliente['telefono']); ?>
+                            <?php endif; ?>
+                            <?php if($cliente['email']): ?>
+                                <span class="ms-3"><i class="bi bi-envelope"></i> <?php echo htmlspecialchars($cliente['email']); ?></span>
+                            <?php endif; ?>
+                        </p>
+                        <?php if($cliente['note']): ?>
+                            <p class="text-muted mb-0"><small><?php echo nl2br(htmlspecialchars($cliente['note'])); ?></small></p>
+                        <?php endif; ?>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <div class="mb-2">
+                            <strong>Pratiche:</strong> <?php echo $numero_pratiche; ?>
                         </div>
+                        <div class="mb-2">
+                            <strong>Totale Speso:</strong> <span class="text-success"><?php echo formatMoney($totale_speso); ?></span>
+                        </div>
+                        <small class="text-muted">Cliente dal: <?php echo formatDate($cliente['data_creazione']); ?></small>
                     </div>
                 </div>
             </div>
