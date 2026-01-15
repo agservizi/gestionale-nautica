@@ -518,6 +518,28 @@ $anni = range(APP_YEAR_START, date('Y') + 1);
 </div>
 
 <script nonce="<?php echo $cspNonce; ?>">
+const modalPraticaEl = document.getElementById('modalPratica');
+const modalClienteQuickEl = document.getElementById('modalClienteQuick');
+let reopenPraticaAfterQuick = false;
+
+modalClienteQuickEl.addEventListener('show.bs.modal', function () {
+    if (modalPraticaEl.classList.contains('show')) {
+        reopenPraticaAfterQuick = true;
+        const praticaInstance = bootstrap.Modal.getInstance(modalPraticaEl);
+        if (praticaInstance) {
+            praticaInstance.hide();
+        }
+    }
+});
+
+modalClienteQuickEl.addEventListener('hidden.bs.modal', function () {
+    if (reopenPraticaAfterQuick) {
+        const praticaInstance = bootstrap.Modal.getInstance(modalPraticaEl) || new bootstrap.Modal(modalPraticaEl);
+        praticaInstance.show();
+        reopenPraticaAfterQuick = false;
+    }
+});
+
 document.getElementById('formClienteQuick').addEventListener('submit', async function (e) {
     e.preventDefault();
     const form = e.currentTarget;
