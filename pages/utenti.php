@@ -117,7 +117,7 @@ $utenti = getDB()->query("SELECT id, username, ruolo, attivo, data_creazione FRO
                                 <th>Ruolo</th>
                                 <th>Attivo</th>
                                 <th>Creato</th>
-                                <th>Azioni</th>
+                                <th class="text-end">Azioni</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -139,16 +139,18 @@ $utenti = getDB()->query("SELECT id, username, ruolo, attivo, data_creazione FRO
                                             <?php endif; ?>
                                         </td>
                                         <td><?php echo formatDate($utente['data_creazione']); ?></td>
-                                        <td>
-                                            <button class="btn btn-sm btn-warning" data-bs-toggle="tooltip" data-bs-placement="top" title="Modifica utente" data-action="edit-user" data-utente="<?php echo htmlspecialchars(json_encode($utente), ENT_QUOTES, 'UTF-8'); ?>">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset password" data-action="reset-password" data-utente="<?php echo htmlspecialchars(json_encode($utente), ENT_QUOTES, 'UTF-8'); ?>">
-                                                <i class="bi bi-key"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Elimina utente" data-action="delete-user" data-user-id="<?php echo (int)$utente['id']; ?>">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
+                                        <td class="text-end">
+                                            <div class="d-inline-flex gap-1">
+                                                <button class="btn btn-sm btn-warning" data-bs-toggle="tooltip" data-bs-placement="top" title="Modifica utente" data-action="edit-user" data-utente="<?php echo htmlspecialchars(json_encode($utente), ENT_QUOTES, 'UTF-8'); ?>">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset password" data-action="reset-password" data-utente="<?php echo htmlspecialchars(json_encode($utente), ENT_QUOTES, 'UTF-8'); ?>">
+                                                    <i class="bi bi-key"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Elimina utente" data-action="delete-user" data-user-id="<?php echo (int)$utente['id']; ?>">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

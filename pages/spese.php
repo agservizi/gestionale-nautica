@@ -164,7 +164,7 @@ $anni = range(APP_YEAR_START, date('Y') + 1);
                                 <th>Categoria</th>
                                 <th>Descrizione</th>
                                 <th>Importo</th>
-                                <th>Azioni</th>
+                                <th class="text-end">Azioni</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -186,15 +186,17 @@ $anni = range(APP_YEAR_START, date('Y') + 1);
                                         </td>
                                         <td><?php echo htmlspecialchars($spesa['descrizione'] ?? '-'); ?></td>
                                         <td class="text-danger"><strong><?php echo formatMoney($spesa['importo']); ?></strong></td>
-                                        <td>
-                                            <form method="POST" class="d-inline" onsubmit="return confirm('Eliminare questa spesa?')">
-                                                <?php echo csrf_input(); ?>
-                                                <input type="hidden" name="action" value="delete">
-                                                <input type="hidden" name="id" value="<?php echo $spesa['id']; ?>">
-                                                <button type="submit" class="btn btn-sm btn-danger" title="Elimina">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
+                                        <td class="text-end">
+                                            <div class="d-inline-flex gap-1">
+                                                <form method="POST" class="d-inline" onsubmit="return confirm('Eliminare questa spesa?')">
+                                                    <?php echo csrf_input(); ?>
+                                                    <input type="hidden" name="action" value="delete">
+                                                    <input type="hidden" name="id" value="<?php echo $spesa['id']; ?>">
+                                                    <button type="submit" class="btn btn-sm btn-danger" title="Elimina">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

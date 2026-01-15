@@ -173,7 +173,7 @@ $anni = range(APP_YEAR_START, date('Y') + 1);
                                 <th>Totale</th>
                                 <th>Pagato</th>
                                 <th>Residuo</th>
-                                <th>Azioni</th>
+                                <th class="text-end">Azioni</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -198,11 +198,13 @@ $anni = range(APP_YEAR_START, date('Y') + 1);
                                         <td class="<?php echo $pratica['residuo'] > 0 ? 'text-danger' : 'text-muted'; ?>">
                                             <?php echo formatMoney($pratica['residuo']); ?>
                                         </td>
-                                        <td>
-                                            <a href="pratica_dettaglio.php?id=<?php echo $pratica['id']; ?>" 
-                                               class="btn btn-sm btn-info" title="Dettaglio">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
+                                        <td class="text-end">
+                                            <div class="d-inline-flex gap-1">
+                                                <a href="pratica_dettaglio.php?id=<?php echo $pratica['id']; ?>" 
+                                                   class="btn btn-sm btn-info" title="Dettaglio">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

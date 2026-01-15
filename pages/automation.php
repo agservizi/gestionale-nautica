@@ -69,7 +69,7 @@ $jobs = getDB()->query("SELECT * FROM scheduled_jobs ORDER BY job_key")->fetchAl
                                 <th>Abilitato</th>
                                 <th>Ultima esecuzione</th>
                                 <th>Esito</th>
-                                <th>Azioni</th>
+                                <th class="text-end">Azioni</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -93,19 +93,21 @@ $jobs = getDB()->query("SELECT * FROM scheduled_jobs ORDER BY job_key")->fetchAl
                                             -
                                         <?php endif; ?>
                                     </td>
-                                    <td>
-                                        <form method="POST" class="d-inline">
-                                            <?php echo csrf_input(); ?>
-                                            <input type="hidden" name="action" value="run">
-                                            <input type="hidden" name="job_key" value="<?php echo htmlspecialchars($job['job_key']); ?>">
-                                            <button class="btn btn-sm btn-primary" type="submit">Esegui</button>
-                                        </form>
-                                        <form method="POST" class="d-inline">
-                                            <?php echo csrf_input(); ?>
-                                            <input type="hidden" name="action" value="toggle">
-                                            <input type="hidden" name="job_key" value="<?php echo htmlspecialchars($job['job_key']); ?>">
-                                            <button class="btn btn-sm btn-outline-secondary" type="submit">On/Off</button>
-                                        </form>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-1">
+                                            <form method="POST" class="d-inline">
+                                                <?php echo csrf_input(); ?>
+                                                <input type="hidden" name="action" value="run">
+                                                <input type="hidden" name="job_key" value="<?php echo htmlspecialchars($job['job_key']); ?>">
+                                                <button class="btn btn-sm btn-primary" type="submit">Esegui</button>
+                                            </form>
+                                            <form method="POST" class="d-inline">
+                                                <?php echo csrf_input(); ?>
+                                                <input type="hidden" name="action" value="toggle">
+                                                <input type="hidden" name="job_key" value="<?php echo htmlspecialchars($job['job_key']); ?>">
+                                                <button class="btn btn-sm btn-outline-secondary" type="submit">On/Off</button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
