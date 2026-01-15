@@ -7,6 +7,14 @@ require_once __DIR__ . '/../includes/header.php';
 // Ottieni statistiche
 $anno_corrente = date('Y');
 $stats = getStatisticheDashboard($anno_corrente);
+
+// Paginazione dashboard
+$perPageDashboard = 5;
+function dashboardPageLink($param, $page) {
+    $params = $_GET;
+    $params[$param] = $page;
+    return '?' . http_build_query($params);
+}
 ?>
 
 <?php include __DIR__ . '/../includes/sidebar.php'; ?>
@@ -150,8 +158,12 @@ $stats = getStatisticheDashboard($anno_corrente);
                     </div>
                     <div class="card-body">
                         <?php
-                        $ultime_pratiche = getPratiche(['anno' => $anno_corrente]);
-                        $ultime_pratiche = array_slice($ultime_pratiche, 0, 5);
+                        $ultime_pratiche_all = getPratiche(['anno' => $anno_corrente]);
+                        $page_pratiche = max(1, (int)($_GET['p_pratiche'] ?? 1));
+                        $total_pratiche = count($ultime_pratiche_all);
+                        $pages_pratiche = (int)ceil($total_pratiche / $perPageDashboard);
+                        $offset_pratiche = ($page_pratiche - 1) * $perPageDashboard;
+                        $ultime_pratiche = array_slice($ultime_pratiche_all, $offset_pratiche, $perPageDashboard);
                         if(empty($ultime_pratiche)): ?>
                             <p class="text-muted">Nessuna pratica presente</p>
                         <?php else: ?>
@@ -168,6 +180,23 @@ $stats = getStatisticheDashboard($anno_corrente);
                                     </a>
                                 <?php endforeach; ?>
                             </div>
+                            <?php if($pages_pratiche > 1): ?>
+                                <nav class="mt-3">
+                                    <ul class="pagination pagination-sm justify-content-end mb-0">
+                                        <li class="page-item <?php echo $page_pratiche <= 1 ? 'disabled' : ''; ?>">
+                                            <a class="page-link" href="<?php echo htmlspecialchars(dashboardPageLink('p_pratiche', $page_pratiche - 1)); ?>">&laquo;</a>
+                                        </li>
+                                        <?php for($p=1;$p<=$pages_pratiche;$p++): ?>
+                                            <li class="page-item <?php echo $p === $page_pratiche ? 'active' : ''; ?>">
+                                                <a class="page-link" href="<?php echo htmlspecialchars(dashboardPageLink('p_pratiche', $p)); ?>"><?php echo $p; ?></a>
+                                            </li>
+                                        <?php endfor; ?>
+                                        <li class="page-item <?php echo $page_pratiche >= $pages_pratiche ? 'disabled' : ''; ?>">
+                                            <a class="page-link" href="<?php echo htmlspecialchars(dashboardPageLink('p_pratiche', $page_pratiche + 1)); ?>">&raquo;</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -180,8 +209,12 @@ $stats = getStatisticheDashboard($anno_corrente);
                     </div>
                     <div class="card-body">
                         <?php
-                        $ultimi_pagamenti = getPagamenti(['anno' => $anno_corrente]);
-                        $ultimi_pagamenti = array_slice($ultimi_pagamenti, 0, 5);
+                        $ultimi_pagamenti_all = getPagamenti(['anno' => $anno_corrente]);
+                        $page_pagamenti = max(1, (int)($_GET['p_pagamenti'] ?? 1));
+                        $total_pagamenti = count($ultimi_pagamenti_all);
+                        $pages_pagamenti = (int)ceil($total_pagamenti / $perPageDashboard);
+                        $offset_pagamenti = ($page_pagamenti - 1) * $perPageDashboard;
+                        $ultimi_pagamenti = array_slice($ultimi_pagamenti_all, $offset_pagamenti, $perPageDashboard);
                         if(empty($ultimi_pagamenti)): ?>
                             <p class="text-muted">Nessun pagamento presente</p>
                         <?php else: ?>
@@ -200,6 +233,23 @@ $stats = getStatisticheDashboard($anno_corrente);
                                     </div>
                                 <?php endforeach; ?>
                             </div>
+                            <?php if($pages_pagamenti > 1): ?>
+                                <nav class="mt-3">
+                                    <ul class="pagination pagination-sm justify-content-end mb-0">
+                                        <li class="page-item <?php echo $page_pagamenti <= 1 ? 'disabled' : ''; ?>">
+                                            <a class="page-link" href="<?php echo htmlspecialchars(dashboardPageLink('p_pagamenti', $page_pagamenti - 1)); ?>">&laquo;</a>
+                                        </li>
+                                        <?php for($p=1;$p<=$pages_pagamenti;$p++): ?>
+                                            <li class="page-item <?php echo $p === $page_pagamenti ? 'active' : ''; ?>">
+                                                <a class="page-link" href="<?php echo htmlspecialchars(dashboardPageLink('p_pagamenti', $p)); ?>"><?php echo $p; ?></a>
+                                            </li>
+                                        <?php endfor; ?>
+                                        <li class="page-item <?php echo $page_pagamenti >= $pages_pagamenti ? 'disabled' : ''; ?>">
+                                            <a class="page-link" href="<?php echo htmlspecialchars(dashboardPageLink('p_pagamenti', $page_pagamenti + 1)); ?>">&raquo;</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -214,7 +264,14 @@ $stats = getStatisticheDashboard($anno_corrente);
                         <h5 class="card-title mb-0">Guide imminenti (7 giorni)</h5>
                     </div>
                     <div class="card-body">
-                        <?php $upcoming = getUpcomingGuide(7); ?>
+                        <?php
+                        $upcoming_all = getUpcomingGuide(7);
+                        $page_guide = max(1, (int)($_GET['p_guide'] ?? 1));
+                        $total_guide = count($upcoming_all);
+                        $pages_guide = (int)ceil($total_guide / $perPageDashboard);
+                        $offset_guide = ($page_guide - 1) * $perPageDashboard;
+                        $upcoming = array_slice($upcoming_all, $offset_guide, $perPageDashboard);
+                        ?>
                         <?php if(empty($upcoming)): ?>
                             <p class="text-muted">Nessuna guida programmata</p>
                         <?php else: ?>
@@ -240,6 +297,23 @@ $stats = getStatisticheDashboard($anno_corrente);
                                     </tbody>
                                 </table>
                             </div>
+                            <?php if($pages_guide > 1): ?>
+                                <nav class="mt-3">
+                                    <ul class="pagination pagination-sm justify-content-end mb-0">
+                                        <li class="page-item <?php echo $page_guide <= 1 ? 'disabled' : ''; ?>">
+                                            <a class="page-link" href="<?php echo htmlspecialchars(dashboardPageLink('p_guide', $page_guide - 1)); ?>">&laquo;</a>
+                                        </li>
+                                        <?php for($p=1;$p<=$pages_guide;$p++): ?>
+                                            <li class="page-item <?php echo $p === $page_guide ? 'active' : ''; ?>">
+                                                <a class="page-link" href="<?php echo htmlspecialchars(dashboardPageLink('p_guide', $p)); ?>"><?php echo $p; ?></a>
+                                            </li>
+                                        <?php endfor; ?>
+                                        <li class="page-item <?php echo $page_guide >= $pages_guide ? 'disabled' : ''; ?>">
+                                            <a class="page-link" href="<?php echo htmlspecialchars(dashboardPageLink('p_guide', $page_guide + 1)); ?>">&raquo;</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </div>
                 </div>
