@@ -25,12 +25,21 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nome = trim($_POST['nome'] ?? '');
         $cognome = trim($_POST['cognome'] ?? '');
         $email = trim($_POST['email'] ?? '');
+        $tipo_pratica = trim($_POST['tipo_pratica'] ?? '');
         if ($nome === '' || $cognome === '') {
             while (ob_get_level() > 0) {
                 ob_end_clean();
             }
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode(['ok' => false, 'message' => 'Nome e cognome sono obbligatori.']);
+            exit;
+        }
+        if ($tipo_pratica === '') {
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['ok' => false, 'message' => 'Tipo pratica è obbligatorio.']);
             exit;
         }
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -50,19 +59,25 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode([
             'ok' => true,
             'id' => $id,
-            'label' => $cognome . ' ' . $nome
+            'label' => $cognome . ' ' . $nome,
+            'tipo_pratica' => $tipo_pratica
         ]);
         exit;
     } elseif(isset($_POST['action'])) {
         switch($action) {
             case 'create':
-                if (empty($_POST['cliente_id']) || empty($_POST['tipo_pratica']) || empty($_POST['data_apertura'])) {
-                    $message = 'Cliente, tipo pratica e data sono obbligatori.';
+                if (empty($_POST['cliente_id']) || empty($_POST['data_apertura'])) {
+                    $message = 'Cliente e data sono obbligatori.';
                     $message_type = 'danger';
                     break;
                 }
                 $id = createPratica($_POST);
-                logAudit('create', 'pratica', $id, $_POST['tipo_pratica'] ?? null);
+                $tipoPraticaLog = $_POST['tipo_pratica'] ?? null;
+                if ($tipoPraticaLog === null || $tipoPraticaLog === '') {
+                    $clienteLog = getClienteById($_POST['cliente_id']);
+                    $tipoPraticaLog = $clienteLog['tipo_pratica'] ?? null;
+                }
+                logAudit('create', 'pratica', $id, $tipoPraticaLog);
                 // Se c'è un pagamento immediato, registralo
                 if(!empty($_POST['pagamento_importo']) && $_POST['pagamento_importo'] > 0) {
                     createPagamento([
@@ -281,7 +296,7 @@ $anni = range(APP_YEAR_START, date('Y') + 1);
                             <select name="cliente_id" class="form-select" required id="selectCliente">
                                 <option value="">-- Seleziona Cliente --</option>
                                 <?php foreach($clienti as $cli): ?>
-                                    <option value="<?php echo $cli['id']; ?>">
+                                    <option value="<?php echo $cli['id']; ?>" data-tipo-pratica="<?php echo htmlspecialchars($cli['tipo_pratica'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                                         <?php echo htmlspecialchars($cli['cognome'] . ' ' . $cli['nome']); ?>
                                     </option>
                                 <?php endforeach; ?>
@@ -310,16 +325,9 @@ $anni = range(APP_YEAR_START, date('Y') + 1);
                     
                     <div class="row mb-3">
                         <div class="col-md-8">
-                            <label class="form-label">Tipo Pratica *</label>
-                            <select name="tipo_pratica" class="form-select" required id="tipoPratica">
-                                <option value="">-- Seleziona --</option>
-                                <option value="Patente entro 12 miglia">Patente entro 12 miglia</option>
-                                <option value="Patente oltre 12 miglia">Patente oltre 12 miglia</option>
-                                <option value="Patente D1">Patente D1</option>
-                                <option value="Rinnovo">Rinnovo</option>
-                                <option value="Duplicato">Duplicato</option>
-                                <option value="Altro">Altro</option>
-                            </select>
+                            <label class="form-label">Tipo Pratica</label>
+                            <input type="text" class="form-control" id="tipoPraticaDisplay" placeholder="Seleziona un cliente" readonly>
+                            <input type="hidden" name="tipo_pratica" id="tipoPratica">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Totale Previsto</label>
@@ -503,6 +511,32 @@ $anni = range(APP_YEAR_START, date('Y') + 1);
                         <input type="email" class="form-control" name="email">
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">Tipo Pratica *</label>
+                        <select class="form-select" name="tipo_pratica" required>
+                            <option value="">-- Seleziona --</option>
+                            <option value="Patente entro 12 miglia">Patente entro 12 miglia</option>
+                            <option value="Patente oltre 12 miglia">Patente oltre 12 miglia</option>
+                            <option value="Patente D1">Patente D1</option>
+                            <option value="Rinnovo">Rinnovo</option>
+                            <option value="Duplicato">Duplicato</option>
+                            <option value="Altro">Altro</option>
+                        </select>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Numero Patente</label>
+                            <input type="text" class="form-control" name="numero_patente">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Data Conseguimento</label>
+                            <input type="date" class="form-control" name="data_conseguimento_patente">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Data Scadenza</label>
+                            <input type="date" class="form-control" name="data_scadenza_patente">
+                        </div>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Note</label>
                         <textarea class="form-control" name="note" rows="2"></textarea>
                     </div>
@@ -577,6 +611,7 @@ document.getElementById('formClienteQuick').addEventListener('submit', async fun
         const option = document.createElement('option');
         option.value = data.id;
         option.textContent = data.label;
+        option.setAttribute('data-tipo-pratica', data.tipo_pratica || '');
         select.appendChild(option);
         select.value = data.id;
 

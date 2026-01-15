@@ -44,14 +44,18 @@ function getClienteById($id) {
 function createCliente($data) {
     $db = getDB();
     $stmt = $db->prepare("
-        INSERT INTO clienti (nome, cognome, telefono, email, note)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO clienti (nome, cognome, telefono, email, tipo_pratica, numero_patente, data_conseguimento_patente, data_scadenza_patente, note)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
     $stmt->execute([
         $data['nome'],
         $data['cognome'],
         $data['telefono'] ?? null,
         $data['email'] ?? null,
+        $data['tipo_pratica'] ?? 'Altro',
+        $data['numero_patente'] ?? null,
+        $data['data_conseguimento_patente'] ?? null,
+        $data['data_scadenza_patente'] ?? null,
         $data['note'] ?? null
     ]);
     return $db->lastInsertId();
@@ -61,7 +65,7 @@ function updateCliente($id, $data) {
     $db = getDB();
     $stmt = $db->prepare("
         UPDATE clienti 
-        SET nome = ?, cognome = ?, telefono = ?, email = ?, note = ?
+        SET nome = ?, cognome = ?, telefono = ?, email = ?, tipo_pratica = ?, numero_patente = ?, data_conseguimento_patente = ?, data_scadenza_patente = ?, note = ?
         WHERE id = ?
     ");
     return $stmt->execute([
@@ -69,6 +73,10 @@ function updateCliente($id, $data) {
         $data['cognome'],
         $data['telefono'] ?? null,
         $data['email'] ?? null,
+        $data['tipo_pratica'] ?? 'Altro',
+        $data['numero_patente'] ?? null,
+        $data['data_conseguimento_patente'] ?? null,
+        $data['data_scadenza_patente'] ?? null,
         $data['note'] ?? null,
         $id
     ]);
@@ -160,6 +168,11 @@ function getPraticaById($id) {
 
 function createPratica($data) {
     $db = getDB();
+    $tipoPratica = $data['tipo_pratica'] ?? null;
+    if ($tipoPratica === null || $tipoPratica === '') {
+        $cliente = getClienteById($data['cliente_id'] ?? 0);
+        $tipoPratica = $cliente['tipo_pratica'] ?? 'Altro';
+    }
     $stmt = $db->prepare("
         INSERT INTO pratiche (
             cliente_id, data_apertura, stato, tipo_pratica, tipo_altro_dettaglio,
@@ -173,7 +186,7 @@ function createPratica($data) {
         $data['cliente_id'],
         $data['data_apertura'],
         $data['stato'] ?? 'Aperta',
-        $data['tipo_pratica'],
+        $tipoPratica,
         $data['tipo_altro_dettaglio'] ?? null,
         $data['totale_previsto'] ?? 0,
         $data['data_esame'] ?? null,

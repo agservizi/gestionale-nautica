@@ -405,7 +405,6 @@ $startWeekday = (int)$firstDay->format('N'); // 1 (Mon) - 7 (Sun)
                         <label class="form-label">Tipo Lezione</label>
                         <select name="tipo_lezione" class="form-select">
                             <option value="">-- Seleziona --</option>
-                            <option value="Lezione teorica">Lezione teorica</option>
                             <option value="Guida pratica">Guida pratica</option>
                             <option value="Esame">Esame</option>
                             <option value="Altro">Altro</option>

@@ -3,11 +3,12 @@
  */
 
 // Inizializzazione al caricamento della pagina
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initSidebar();
     initSearch();
     initTooltips();
     initDateInputs();
+    initClienteTipoPratica();
     initDynamicPraticaFields();
     initAgendaDragDrop();
     initConsentBanner();
@@ -74,7 +75,7 @@ function initSidebar() {
             toggleDesktop();
         }
     }
-    
+
     // Event delegation per i toggle (capture per evitare stopPropagation)
     document.addEventListener('click', (e) => {
         const btnTop = e.target.closest('#sidebarCollapseTop');
@@ -89,13 +90,13 @@ function initSidebar() {
     if (overlay) {
         overlay.addEventListener('click', closeMobile);
     }
-    
+
     // Ripristina stato sidebar dal localStorage
     if (!isMobile()) {
         applyCollapsedFromStorage();
     }
 
-    if(isMobile()) {
+    if (isMobile()) {
         applyCollapsedFromStorage();
         closeMobile();
         document.body.classList.remove('sidebar-collapsed');
@@ -197,18 +198,18 @@ function getCookieValue(name) {
 function initSearch() {
     const searchForm = document.getElementById('searchForm');
     const searchInput = document.getElementById('searchCliente');
-    
-    if(searchForm && searchInput) {
-        searchForm.addEventListener('submit', function(e) {
+
+    if (searchForm && searchInput) {
+        searchForm.addEventListener('submit', function (e) {
             e.preventDefault();
             const query = searchInput.value.trim();
-            if(query) {
+            if (query) {
                 window.location.href = '/pages/clienti.php?search=' + encodeURIComponent(query);
             }
         });
-        
+
         // Autocomplete (da implementare con chiamata AJAX se necessario)
-        searchInput.addEventListener('input', function() {
+        searchInput.addEventListener('input', function () {
             // Implementa autocomplete qui se necessario
         });
     }
@@ -230,9 +231,9 @@ function initTooltips() {
 function initDateInputs() {
     const today = new Date().toISOString().split('T')[0];
     const dateInputs = document.querySelectorAll('input[type="date"]');
-    
+
     dateInputs.forEach(input => {
-        if(!input.value && input.hasAttribute('data-default-today')) {
+        if (!input.value && input.hasAttribute('data-default-today')) {
             input.value = today;
         }
     });
@@ -252,7 +253,7 @@ function formatMoney(amount) {
 // FORMAT DATE
 // ============================================
 function formatDate(dateString) {
-    if(!dateString) return '-';
+    if (!dateString) return '-';
     const date = new Date(dateString);
     return date.toLocaleDateString('it-IT');
 }
@@ -268,9 +269,9 @@ function showAlert(message, type = 'success', duration = 3000) {
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
-    
+
     document.body.appendChild(alertDiv);
-    
+
     setTimeout(() => {
         alertDiv.classList.remove('show');
         setTimeout(() => alertDiv.remove(), 150);
@@ -290,7 +291,7 @@ function showLoading() {
 
 function hideLoading() {
     const overlay = document.getElementById('loadingOverlay');
-    if(overlay) {
+    if (overlay) {
         overlay.remove();
     }
 }
@@ -309,12 +310,12 @@ function calcolaResiduo() {
     const totaleInput = document.getElementById('totale_previsto');
     const pagatoInput = document.getElementById('totale_pagato');
     const residuoDisplay = document.getElementById('residuo_display');
-    
-    if(totaleInput && pagatoInput && residuoDisplay) {
+
+    if (totaleInput && pagatoInput && residuoDisplay) {
         const totale = parseFloat(totaleInput.value) || 0;
         const pagato = parseFloat(pagatoInput.value) || 0;
         const residuo = totale - pagato;
-        
+
         residuoDisplay.textContent = formatMoney(residuo);
         residuoDisplay.className = residuo > 0 ? 'text-danger' : 'text-success';
     }
@@ -325,30 +326,30 @@ function calcolaResiduo() {
 // ============================================
 function toggleCampiPratica() {
     const tipoPratica = document.getElementById('tipoPratica');
-    if(!tipoPratica) return;
-    
+    if (!tipoPratica) return;
+
     const tipo = tipoPratica.value;
-    
+
     // Nascondi tutti i campi opzionali
     const campiConseguimento = document.getElementById('campi_conseguimento');
     const campiRinnovo = document.getElementById('campi_rinnovo');
     const campiDuplicato = document.getElementById('campi_duplicato');
     const campiAltro = document.getElementById('campi_altro');
-    
+
     // Nascondi tutto
     [campiConseguimento, campiRinnovo, campiDuplicato, campiAltro].forEach(el => {
-        if(el) el.style.display = 'none';
+        if (el) el.style.display = 'none';
     });
-    
+
     // Mostra i campi appropriati
-    if(tipo.includes('Patente') && !tipo.includes('Rinnovo')) {
-        if(campiConseguimento) campiConseguimento.style.display = 'block';
-    } else if(tipo === 'Rinnovo') {
-        if(campiRinnovo) campiRinnovo.style.display = 'block';
-    } else if(tipo === 'Duplicato') {
-        if(campiDuplicato) campiDuplicato.style.display = 'block';
-    } else if(tipo === 'Altro') {
-        if(campiAltro) campiAltro.style.display = 'block';
+    if (tipo.includes('Patente') && !tipo.includes('Rinnovo')) {
+        if (campiConseguimento) campiConseguimento.style.display = 'block';
+    } else if (tipo === 'Rinnovo') {
+        if (campiRinnovo) campiRinnovo.style.display = 'block';
+    } else if (tipo === 'Duplicato') {
+        if (campiDuplicato) campiDuplicato.style.display = 'block';
+    } else if (tipo === 'Altro') {
+        if (campiAltro) campiAltro.style.display = 'block';
     }
 }
 
@@ -358,6 +359,24 @@ function initDynamicPraticaFields() {
         tipoPratica.addEventListener('change', toggleCampiPratica);
         toggleCampiPratica();
     }
+}
+
+function initClienteTipoPratica() {
+    const selectCliente = document.getElementById('selectCliente');
+    const tipoPratica = document.getElementById('tipoPratica');
+    const tipoPraticaDisplay = document.getElementById('tipoPraticaDisplay');
+    if (!selectCliente || !tipoPratica || !tipoPraticaDisplay) return;
+
+    const updateTipo = () => {
+        const selectedOption = selectCliente.options[selectCliente.selectedIndex];
+        const tipo = selectedOption ? selectedOption.getAttribute('data-tipo-pratica') : '';
+        tipoPratica.value = tipo || '';
+        tipoPraticaDisplay.value = tipo || '';
+        toggleCampiPratica();
+    };
+
+    selectCliente.addEventListener('change', updateTipo);
+    updateTipo();
 }
 
 function initAgendaDragDrop() {
@@ -414,11 +433,11 @@ function initAgendaDragDrop() {
 // ============================================
 function exportTableToCSV(tableId, filename = 'export.csv') {
     const table = document.getElementById(tableId);
-    if(!table) return;
-    
+    if (!table) return;
+
     let csv = [];
     const rows = table.querySelectorAll('tr');
-    
+
     rows.forEach(row => {
         const cols = row.querySelectorAll('td, th');
         const rowData = Array.from(cols).map(col => {
@@ -428,7 +447,7 @@ function exportTableToCSV(tableId, filename = 'export.csv') {
         });
         csv.push(rowData.join(','));
     });
-    
+
     downloadCSV(csv.join('\n'), filename);
 }
 
@@ -436,11 +455,11 @@ function downloadCSV(csv, filename) {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    
+
     link.setAttribute('href', url);
     link.setAttribute('download', filename);
     link.style.visibility = 'hidden';
-    
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -451,41 +470,41 @@ function downloadCSV(csv, filename) {
 // ============================================
 function renderCalendar(year, month, containerId) {
     const container = document.getElementById(containerId);
-    if(!container) return;
-    
+    if (!container) return;
+
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay();
-    
+
     let html = '<table class="table table-bordered calendar-table">';
     html += '<thead><tr>';
     ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'].forEach(day => {
         html += `<th>${day}</th>`;
     });
     html += '</tr></thead><tbody><tr>';
-    
+
     // Giorni vuoti prima del primo giorno del mese
-    for(let i = 0; i < startingDayOfWeek; i++) {
+    for (let i = 0; i < startingDayOfWeek; i++) {
         html += '<td class="calendar-day-empty"></td>';
     }
-    
+
     // Giorni del mese
-    for(let day = 1; day <= daysInMonth; day++) {
-        if((startingDayOfWeek + day - 1) % 7 === 0 && day !== 1) {
+    for (let day = 1; day <= daysInMonth; day++) {
+        if ((startingDayOfWeek + day - 1) % 7 === 0 && day !== 1) {
             html += '</tr><tr>';
         }
-        
+
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         html += `<td class="calendar-day" data-date="${dateStr}">${day}</td>`;
     }
-    
+
     html += '</tr></tbody></table>';
     container.innerHTML = html;
-    
+
     // Event listeners per i giorni
     container.querySelectorAll('.calendar-day').forEach(dayEl => {
-        dayEl.addEventListener('click', function() {
+        dayEl.addEventListener('click', function () {
             const date = this.getAttribute('data-date');
             onDateClick(date);
         });
