@@ -229,6 +229,7 @@ CREATE TABLE IF NOT EXISTS agenda_guide (
     data_guida DATE NOT NULL,
     orario_inizio TIME NOT NULL,
     orario_fine TIME NOT NULL,
+    istruttore VARCHAR(100) NOT NULL,
     tipo_lezione VARCHAR(100),
     note TEXT,
     data_creazione TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

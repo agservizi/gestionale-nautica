@@ -405,8 +405,8 @@ function createAgenda($data) {
         ? $data['note']
         : null;
     $stmt = $db->prepare("
-        INSERT INTO agenda_guide (cliente_id, pratica_id, data_guida, orario_inizio, orario_fine, tipo_lezione, note)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO agenda_guide (cliente_id, pratica_id, data_guida, orario_inizio, orario_fine, istruttore, tipo_lezione, note)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ");
     $stmt->execute([
         $data['cliente_id'],
@@ -414,6 +414,7 @@ function createAgenda($data) {
         $data['data_guida'],
         $data['orario_inizio'],
         $data['orario_fine'],
+        $data['istruttore'] ?? null,
         $tipoLezione,
         $note
     ]);
@@ -424,13 +425,14 @@ function updateAgenda($id, $data) {
     $db = getDB();
     $stmt = $db->prepare("
         UPDATE agenda_guide 
-        SET data_guida = ?, orario_inizio = ?, orario_fine = ?, tipo_lezione = ?, note = ?
+        SET data_guida = ?, orario_inizio = ?, orario_fine = ?, istruttore = ?, tipo_lezione = ?, note = ?
         WHERE id = ?
     ");
     return $stmt->execute([
         $data['data_guida'],
         $data['orario_inizio'],
         $data['orario_fine'],
+        $data['istruttore'] ?? null,
         $data['tipo_lezione'] ?? null,
         $data['note'] ?? null,
         $id

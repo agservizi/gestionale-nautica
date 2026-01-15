@@ -15,8 +15,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif(isset($_POST['action'])) {
         switch($_POST['action']) {
             case 'create':
-                if (empty($_POST['cliente_id']) || empty($_POST['data_guida']) || empty($_POST['orario_inizio']) || empty($_POST['orario_fine'])) {
-                    $message = 'Cliente, data e orari sono obbligatori.';
+                if (empty($_POST['cliente_id']) || empty($_POST['data_guida']) || empty($_POST['orario_inizio']) || empty($_POST['orario_fine']) || empty($_POST['istruttore'])) {
+                    $message = 'Cliente, data, orari e istruttore sono obbligatori.';
                     $message_type = 'danger';
                     break;
                 }
@@ -205,6 +205,9 @@ $startWeekday = (int)$firstDay->format('N'); // 1 (Mon) - 7 (Sun)
                                                     <?php if($guida['tipo_lezione']): ?>
                                                         <span class="badge bg-info"><?php echo htmlspecialchars($guida['tipo_lezione']); ?></span>
                                                     <?php endif; ?>
+                                                    <?php if(!empty($guida['istruttore'])): ?>
+                                                        <span class="badge bg-secondary ms-1"><?php echo htmlspecialchars($guida['istruttore']); ?></span>
+                                                    <?php endif; ?>
                                                     <?php if($guida['pratica_id']): ?>
                                                         <br>
                                                         <small>
@@ -388,6 +391,16 @@ $startWeekday = (int)$firstDay->format('N'); // 1 (Mon) - 7 (Sun)
                         </div>
                     </div>
                     
+                    <div class="mb-3">
+                        <label class="form-label">Istruttore *</label>
+                        <select name="istruttore" class="form-select" required>
+                            <option value="">-- Seleziona --</option>
+                            <option value="Vincenzo Scibile">Vincenzo Scibile</option>
+                            <option value="Vincenzo Lomiento">Vincenzo Lomiento</option>
+                            <option value="Luigi Visalli">Luigi Visalli</option>
+                        </select>
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label">Tipo Lezione</label>
                         <select name="tipo_lezione" class="form-select">
