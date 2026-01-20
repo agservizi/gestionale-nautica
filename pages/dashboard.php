@@ -35,7 +35,7 @@ function dashboardPageLink($param, $page) {
                 <?php if ($currentUser): ?>
                     <h2 class="h4 d-flex align-items-center gap-2 fw-semibold text-primary">
                         <i class="bi bi-hand-thumbs-up"></i>
-                        <span>Benvenuto, <?php echo htmlspecialchars($currentUser['username']); ?>.</span>
+                        <span>Ciao, <?php echo htmlspecialchars($currentUser['username']); ?>.</span>
                     </h2>
                 <?php endif; ?>
                 <p class="text-muted">Anno: <?php echo $anno_corrente; ?></p>
