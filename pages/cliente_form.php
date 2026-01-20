@@ -247,58 +247,47 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
 <script nonce="<?php echo $cspNonce; ?>">
 const cittaInput = document.getElementById('clienteCitta');
 const cittaDatalist = document.getElementById('cittaSuggerimenti');
-const apiBase = <?php echo json_encode(rtrim(dirname($_SERVER['PHP_SELF']), '/')); ?>;
+const appBase = <?php echo json_encode(rtrim(dirname(dirname($_SERVER['PHP_SELF'])), '/')); ?>;
+
+let comuniList = [];
+let comuniLoaded = false;
+
+async function loadComuniJson() {
+    if (comuniLoaded) return;
+    comuniLoaded = true;
+    try {
+        const res = await fetch(`${appBase}/assets/data/comuni.json`);
+        const data = await res.json();
+        if (Array.isArray(data)) {
+            comuniList = data.map(item => item.nome).filter(Boolean);
+        }
+    } catch (e) {
+        comuniList = [];
+    }
+}
 
 let debounceCity;
 function debounceCitySearch() {
     clearTimeout(debounceCity);
-    debounceCity = setTimeout(runCitySearch, 250);
+    debounceCity = setTimeout(runCitySearch, 200);
 }
 
-async function runCitySearch() {
+function runCitySearch() {
     if (!cittaInput || !cittaDatalist) return;
-    const query = cittaInput.value.trim();
+    const query = cittaInput.value.trim().toLowerCase();
     if (query.length < 2) {
         cittaDatalist.innerHTML = '';
         return;
     }
-    try {
-        const res = await fetch(`${apiBase}/api/istat_comuni.php?q=${encodeURIComponent(query)}&limit=20`, {
-            headers: { 'Accept': 'application/json' }
-        });
-        const data = await res.json();
-        if (Array.isArray(data.comuni)) {
-            cittaDatalist.innerHTML = data.comuni.map(c => `<option value="${c}"></option>`).join('');
-        }
-    } catch (e) {
-        cittaDatalist.innerHTML = '';
-    }
-}
-
-async function normalizeCityOnBlur() {
-    if (!cittaInput) return;
-    const query = cittaInput.value.trim();
-    if (query.length < 2) return;
-    try {
-        const res = await fetch(`${apiBase}/api/istat_comuni.php?q=${encodeURIComponent(query)}&limit=50`, {
-            headers: { 'Accept': 'application/json' }
-        });
-        const data = await res.json();
-        if (Array.isArray(data.comuni)) {
-            const lower = query.toLowerCase();
-            const exact = data.comuni.find(c => c.toLowerCase() === lower);
-            if (exact) {
-                cittaInput.value = exact;
-            }
-        }
-    } catch (e) {
-        // ignore
-    }
+    const results = comuniList
+        .filter(name => name.toLowerCase().includes(query))
+        .slice(0, 20);
+    cittaDatalist.innerHTML = results.map(c => `<option value="${c}"></option>`).join('');
 }
 
 if (cittaInput) {
+    cittaInput.addEventListener('focus', loadComuniJson);
     cittaInput.addEventListener('input', debounceCitySearch);
-    cittaInput.addEventListener('blur', normalizeCityOnBlur);
 }
 </script>
 
