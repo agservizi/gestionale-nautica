@@ -262,7 +262,7 @@ async function runCitySearch() {
         return;
     }
     try {
-        const res = await fetch(`/pages/api/istat_comuni.php?q=${encodeURIComponent(query)}&limit=20`, {
+        const res = await fetch(`api/istat_comuni.php?q=${encodeURIComponent(query)}&limit=20`, {
             headers: { 'Accept': 'application/json' }
         });
         const data = await res.json();
@@ -279,7 +279,7 @@ async function normalizeCityOnBlur() {
     const query = cittaInput.value.trim();
     if (query.length < 2) return;
     try {
-        const res = await fetch(`/pages/api/istat_comuni.php?q=${encodeURIComponent(query)}&limit=50`, {
+        const res = await fetch(`api/istat_comuni.php?q=${encodeURIComponent(query)}&limit=50`, {
             headers: { 'Accept': 'application/json' }
         });
         const data = await res.json();
