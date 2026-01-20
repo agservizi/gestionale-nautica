@@ -280,7 +280,7 @@ async function loadComuniJson() {
 let debounceCity;
 function debounceCitySearch() {
     clearTimeout(debounceCity);
-    debounceCity = setTimeout(runCitySearch, 200);
+    debounceCity = setTimeout(() => runCitySearch(cittaInput, cittaPanel), 200);
 }
 
 function renderCityResults(panel, results) {
