@@ -274,8 +274,30 @@ async function runCitySearch() {
     }
 }
 
+async function normalizeCityOnBlur() {
+    if (!cittaInput) return;
+    const query = cittaInput.value.trim();
+    if (query.length < 2) return;
+    try {
+        const res = await fetch(`/pages/api/istat_comuni.php?q=${encodeURIComponent(query)}&limit=50`, {
+            headers: { 'Accept': 'application/json' }
+        });
+        const data = await res.json();
+        if (Array.isArray(data.comuni)) {
+            const lower = query.toLowerCase();
+            const exact = data.comuni.find(c => c.toLowerCase() === lower);
+            if (exact) {
+                cittaInput.value = exact;
+            }
+        }
+    } catch (e) {
+        // ignore
+    }
+}
+
 if (cittaInput) {
     cittaInput.addEventListener('input', debounceCitySearch);
+    cittaInput.addEventListener('blur', normalizeCityOnBlur);
 }
 </script>
 
