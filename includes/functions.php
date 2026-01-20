@@ -122,11 +122,13 @@ function createCliente($data) {
     }
     $stmt = $db->prepare("
         INSERT INTO clienti (
-            nome, cognome, telefono, email, codice_fiscale, indirizzo, citta,
+            nome, cognome, telefono, email, codice_fiscale, data_nascita, indirizzo, citta,
             tipo_pratica, numero_patente, data_conseguimento_patente, data_scadenza_patente,
-            numero_registro_iscrizione, data_iscrizione, occhiali, note
+            numero_registro_iscrizione, data_iscrizione, occhiali,
+            documento_tipo, documento_data_emissione, documento_data_scadenza,
+            note
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
     $stmt->execute([
         $data['nome'],
@@ -134,6 +136,7 @@ function createCliente($data) {
         $data['telefono'] ?? null,
         $data['email'] ?? null,
         $codiceFiscale,
+        $data['data_nascita'] ?? null,
         $data['indirizzo'] ?? null,
         $data['citta'] ?? null,
         $data['tipo_pratica'] ?? 'Altro',
@@ -143,6 +146,9 @@ function createCliente($data) {
         $data['numero_registro_iscrizione'] ?? null,
         $data['data_iscrizione'] ?? null,
         $occhiali,
+        $data['documento_tipo'] ?? null,
+        $data['documento_data_emissione'] ?? null,
+        $data['documento_data_scadenza'] ?? null,
         $data['note'] ?? null
     ]);
     return $db->lastInsertId();
@@ -165,9 +171,11 @@ function updateCliente($id, $data) {
     }
     $stmt = $db->prepare("
         UPDATE clienti 
-        SET nome = ?, cognome = ?, telefono = ?, email = ?, codice_fiscale = ?, indirizzo = ?, citta = ?,
+        SET nome = ?, cognome = ?, telefono = ?, email = ?, codice_fiscale = ?, data_nascita = ?, indirizzo = ?, citta = ?,
             tipo_pratica = ?, numero_patente = ?, data_conseguimento_patente = ?, data_scadenza_patente = ?,
-            numero_registro_iscrizione = ?, data_iscrizione = ?, occhiali = ?, note = ?
+            numero_registro_iscrizione = ?, data_iscrizione = ?, occhiali = ?,
+            documento_tipo = ?, documento_data_emissione = ?, documento_data_scadenza = ?,
+            note = ?
         WHERE id = ?
     ");
     return $stmt->execute([
@@ -176,6 +184,7 @@ function updateCliente($id, $data) {
         $data['telefono'] ?? null,
         $data['email'] ?? null,
         $codiceFiscale,
+        $data['data_nascita'] ?? null,
         $data['indirizzo'] ?? null,
         $data['citta'] ?? null,
         $data['tipo_pratica'] ?? 'Altro',
@@ -185,6 +194,9 @@ function updateCliente($id, $data) {
         $data['numero_registro_iscrizione'] ?? null,
         $data['data_iscrizione'] ?? null,
         $occhiali,
+        $data['documento_tipo'] ?? null,
+        $data['documento_data_emissione'] ?? null,
+        $data['documento_data_scadenza'] ?? null,
         $data['note'] ?? null,
         $id
     ]);

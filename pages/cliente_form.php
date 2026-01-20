@@ -124,6 +124,10 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
                                 <label for="clienteCodiceFiscale" class="form-label">Codice Fiscale</label>
                                 <input type="text" class="form-control" id="clienteCodiceFiscale" name="codice_fiscale" maxlength="16" value="<?php echo htmlspecialchars($cliente['codice_fiscale'] ?? ''); ?>">
                             </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="clienteDataNascita" class="form-label">Nato il</label>
+                                <input type="date" class="form-control" id="clienteDataNascita" name="data_nascita" value="<?php echo htmlspecialchars($cliente['data_nascita'] ?? ''); ?>">
+                            </div>
                         </div>
                     </div>
 
@@ -197,6 +201,28 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="clienteOcchiali" name="occhiali" value="1" <?php echo !empty($cliente['occhiali']) ? 'checked' : ''; ?>>
                             <label class="form-check-label" for="clienteOcchiali">Uso occhiali</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="mb-3 text-uppercase text-muted">Documento</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="clienteDocumentoTipo" class="form-label">Tipo Documento</label>
+                                <select class="form-select" id="clienteDocumentoTipo" name="documento_tipo">
+                                    <option value="">-- Seleziona --</option>
+                                    <option value="Patente" <?php echo ($cliente['documento_tipo'] ?? '') === 'Patente' ? 'selected' : ''; ?>>Patente</option>
+                                    <option value="Carta d'identità" <?php echo ($cliente['documento_tipo'] ?? '') === "Carta d'identità" ? 'selected' : ''; ?>>Carta d'identità</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="clienteDocumentoEmissione" class="form-label">Data Emissione</label>
+                                <input type="date" class="form-control" id="clienteDocumentoEmissione" name="documento_data_emissione" value="<?php echo htmlspecialchars($cliente['documento_data_emissione'] ?? ''); ?>">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="clienteDocumentoScadenza" class="form-label">Data Scadenza</label>
+                                <input type="date" class="form-control" id="clienteDocumentoScadenza" name="documento_data_scadenza" value="<?php echo htmlspecialchars($cliente['documento_data_scadenza'] ?? ''); ?>">
+                            </div>
                         </div>
                     </div>
 
