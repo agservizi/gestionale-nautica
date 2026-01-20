@@ -7,6 +7,7 @@ require_once __DIR__ . '/../includes/header.php';
 // Ottieni statistiche
 $anno_corrente = date('Y');
 $stats = getStatisticheDashboard($anno_corrente);
+$currentUser = currentUser();
 
 // Paginazione dashboard
 $perPageDashboard = 5;
@@ -31,6 +32,9 @@ function dashboardPageLink($param, $page) {
         <div class="row mb-4">
             <div class="col-12">
                 <h1 class="h3">Dashboard</h1>
+                <?php if ($currentUser): ?>
+                    <p class="text-muted">Benvenuto, <?php echo htmlspecialchars($currentUser['username']); ?>.</p>
+                <?php endif; ?>
                 <p class="text-muted">Anno: <?php echo $anno_corrente; ?></p>
             </div>
         </div>
