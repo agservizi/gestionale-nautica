@@ -21,9 +21,26 @@ if (!is_dir($cacheDir)) {
 
 function outputComuni($comuni, $query, $limit) {
     if ($query !== '') {
-        $q = mb_strtolower($query, 'UTF-8');
+        $lower = function($value) {
+            return function_exists('mb_strtolower')
+                ? mb_strtolower($value, 'UTF-8')
+                : strtolower($value);
+        };
+        $pos = function($haystack, $needle) {
+            return function_exists('mb_strpos')
+                ? mb_strpos($haystack, $needle)
+                : strpos($haystack, $needle);
+        };
+
+        $q = $lower($query);
         $filtered = array_values(array_filter($comuni, function($name) use ($q) {
-            return mb_strpos(mb_strtolower($name, 'UTF-8'), $q) !== false;
+            $lower = function_exists('mb_strtolower')
+                ? mb_strtolower($name, 'UTF-8')
+                : strtolower($name);
+            $pos = function_exists('mb_strpos')
+                ? mb_strpos($lower, $q)
+                : strpos($lower, $q);
+            return $pos !== false;
         }));
         $comuni = array_slice($filtered, 0, $limit);
     }
