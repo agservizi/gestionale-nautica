@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
     initDynamicPraticaFields();
     initAgendaDragDrop();
     initConsentBanner();
+    initGlobalInputFormatting();
 });
 
 // ============================================
@@ -360,6 +361,27 @@ function initDynamicPraticaFields() {
         tipoPratica.addEventListener('change', toggleCampiPratica);
         toggleCampiPratica();
     }
+}
+
+// ============================================
+// FORMATTazione INPUT TESTO (Sentence case)
+// ============================================
+function initGlobalInputFormatting() {
+    const selector = 'input[type="text"], textarea';
+    document.querySelectorAll(selector).forEach((el) => {
+        if (el.hasAttribute('data-preserve-case')) {
+            return;
+        }
+        el.addEventListener('blur', () => {
+            const value = el.value;
+            if (!value) return;
+            const trimmed = value.trim();
+            if (trimmed.length === 0) return;
+            const lower = trimmed.toLocaleLowerCase('it-IT');
+            const formatted = lower.charAt(0).toLocaleUpperCase('it-IT') + lower.slice(1);
+            el.value = formatted;
+        });
+    });
 }
 
 function initClienteTipoPratica() {
