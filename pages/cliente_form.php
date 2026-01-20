@@ -307,8 +307,11 @@ async function runAddressSearch() {
         return;
     }
 
+    const searchQuery = query.replace(/\s+\d+[a-zA-Z]?$/u, '').trim();
+    const effectiveQuery = searchQuery !== '' ? searchQuery : query;
+
     const citta = cittaInput && cittaInput.value.trim() ? `, ${cittaInput.value.trim()}` : '';
-    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=it&q=${encodeURIComponent(query + citta)}`;
+    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=it&q=${encodeURIComponent(effectiveQuery + citta)}`;
 
     try {
         const res = await fetch(url, { headers: { 'Accept-Language': 'it' } });
@@ -337,6 +340,12 @@ function applyCityFromAddress() {
     const label = indirizzoInput.value.trim();
     if (label && addressSuggestions[label]) {
         cittaInput.value = addressSuggestions[label];
+        return;
+    }
+
+    const baseLabel = label.replace(/\s+\d+[a-zA-Z]?$/u, '').trim();
+    if (baseLabel && addressSuggestions[baseLabel]) {
+        cittaInput.value = addressSuggestions[baseLabel];
     }
 }
 
