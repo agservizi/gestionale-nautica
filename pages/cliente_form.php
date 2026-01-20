@@ -311,7 +311,7 @@ async function runAddressSearch() {
     const effectiveQuery = searchQuery !== '' ? searchQuery : query;
 
     const citta = cittaInput && cittaInput.value.trim() ? `, ${cittaInput.value.trim()}` : ', Italia';
-    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=it&q=${encodeURIComponent(effectiveQuery + citta)}`;
+    const url = `/pages/api/osm_search.php?q=${encodeURIComponent(effectiveQuery + citta)}&limit=6`;
 
     try {
         const res = await fetch(url, { headers: { 'Accept-Language': 'it' } });
