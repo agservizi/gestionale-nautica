@@ -161,11 +161,23 @@ function currentUser() {
 }
 
 function isAdmin() {
+    return isLogged() && ($_SESSION['ruolo'] ?? '') === 'admin';
+}
+
+function isDeveloper() {
+    return isLogged() && ($_SESSION['ruolo'] ?? '') === 'sviluppatore';
+}
+
+function requireDeveloper() {
     if (!isLogged()) {
-        return false;
+        header('Location: /login.php');
+        exit;
     }
-    $ruolo = $_SESSION['ruolo'] ?? '';
-    return in_array($ruolo, ['admin', 'sviluppatore'], true);
+
+    if (!isDeveloper() && !isAdmin()) {
+        header('Location: /pages/dashboard.php');
+        exit;
+    }
 }
 
 // Funzione per richiedere il login

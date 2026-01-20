@@ -7,98 +7,114 @@
                 <h3 class="sidebar-title">NautikaPro</h3>
             </div>
             
+            <?php $isDeveloper = function_exists('isDeveloper') && isDeveloper(); ?>
             <ul class="list-unstyled components">
-                <li class="<?php echo $current_page == 'dashboard' ? 'active' : ''; ?>">
-                    <a href="/pages/dashboard.php" class="sidebar-link" data-tooltip="Dashboard">
-                        <i class="bi bi-speedometer2"></i>
-                        <span class="link-text">Dashboard</span>
-                    </a>
-                </li>
-                
-                <li class="<?php echo $current_page == 'clienti' || $current_page == 'cliente_dettaglio' ? 'active' : ''; ?>">
-                    <a href="/pages/clienti.php" class="sidebar-link" data-tooltip="Clienti">
-                        <i class="bi bi-people"></i>
-                        <span class="link-text">Clienti</span>
-                    </a>
-                </li>
-                
-                <li class="<?php echo $current_page == 'pratiche' || $current_page == 'pratica_dettaglio' ? 'active' : ''; ?>">
-                    <a href="/pages/pratiche.php" class="sidebar-link" data-tooltip="Pratiche">
-                        <i class="bi bi-file-earmark-text"></i>
-                        <span class="link-text">Pratiche</span>
-                    </a>
-                </li>
-                
-                <li class="<?php echo $current_page == 'pagamenti' ? 'active' : ''; ?>">
-                    <a href="/pages/pagamenti.php" class="sidebar-link" data-tooltip="Pagamenti">
-                        <i class="bi bi-credit-card"></i>
-                        <span class="link-text">Pagamenti</span>
-                    </a>
-                </li>
-                
-                <li class="<?php echo $current_page == 'agenda' ? 'active' : ''; ?>">
-                    <a href="/pages/agenda.php" class="sidebar-link" data-tooltip="Agenda Guide">
-                        <i class="bi bi-calendar3"></i>
-                        <span class="link-text">Agenda Guide</span>
-                    </a>
-                </li>
-                
-                <li class="<?php echo $current_page == 'spese' ? 'active' : ''; ?>">
-                    <a href="/pages/spese.php" class="sidebar-link" data-tooltip="Spese">
-                        <i class="bi bi-wallet2"></i>
-                        <span class="link-text">Spese</span>
-                    </a>
-                </li>
-                
-                <li class="<?php echo $current_page == 'report' ? 'active' : ''; ?>">
-                    <a href="/pages/report.php" class="sidebar-link" data-tooltip="Report">
-                        <i class="bi bi-graph-up"></i>
-                        <span class="link-text">Report</span>
-                    </a>
-                </li>
+                <?php if(!$isDeveloper): ?>
+                    <li class="<?php echo $current_page == 'dashboard' ? 'active' : ''; ?>">
+                        <a href="/pages/dashboard.php" class="sidebar-link" data-tooltip="Dashboard">
+                            <i class="bi bi-speedometer2"></i>
+                            <span class="link-text">Dashboard</span>
+                        </a>
+                    </li>
+                    
+                    <li class="<?php echo $current_page == 'clienti' || $current_page == 'cliente_dettaglio' ? 'active' : ''; ?>">
+                        <a href="/pages/clienti.php" class="sidebar-link" data-tooltip="Clienti">
+                            <i class="bi bi-people"></i>
+                            <span class="link-text">Clienti</span>
+                        </a>
+                    </li>
+                    
+                    <li class="<?php echo $current_page == 'pratiche' || $current_page == 'pratica_dettaglio' ? 'active' : ''; ?>">
+                        <a href="/pages/pratiche.php" class="sidebar-link" data-tooltip="Pratiche">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <span class="link-text">Pratiche</span>
+                        </a>
+                    </li>
+                    
+                    <li class="<?php echo $current_page == 'pagamenti' ? 'active' : ''; ?>">
+                        <a href="/pages/pagamenti.php" class="sidebar-link" data-tooltip="Pagamenti">
+                            <i class="bi bi-credit-card"></i>
+                            <span class="link-text">Pagamenti</span>
+                        </a>
+                    </li>
+                    
+                    <li class="<?php echo $current_page == 'agenda' ? 'active' : ''; ?>">
+                        <a href="/pages/agenda.php" class="sidebar-link" data-tooltip="Agenda Guide">
+                            <i class="bi bi-calendar3"></i>
+                            <span class="link-text">Agenda Guide</span>
+                        </a>
+                    </li>
+                    
+                    <li class="<?php echo $current_page == 'spese' ? 'active' : ''; ?>">
+                        <a href="/pages/spese.php" class="sidebar-link" data-tooltip="Spese">
+                            <i class="bi bi-wallet2"></i>
+                            <span class="link-text">Spese</span>
+                        </a>
+                    </li>
+                    
+                    <li class="<?php echo $current_page == 'report' ? 'active' : ''; ?>">
+                        <a href="/pages/report.php" class="sidebar-link" data-tooltip="Report">
+                            <i class="bi bi-graph-up"></i>
+                            <span class="link-text">Report</span>
+                        </a>
+                    </li>
 
-                <li class="<?php echo $current_page == 'profilo' ? 'active' : ''; ?>">
-                    <a href="/pages/profilo.php" class="sidebar-link" data-tooltip="Profilo">
-                        <i class="bi bi-person-circle"></i>
-                        <span class="link-text">Profilo</span>
-                    </a>
-                </li>
+                    <li class="<?php echo $current_page == 'profilo' ? 'active' : ''; ?>">
+                        <a href="/pages/profilo.php" class="sidebar-link" data-tooltip="Profilo">
+                            <i class="bi bi-person-circle"></i>
+                            <span class="link-text">Profilo</span>
+                        </a>
+                    </li>
 
-                <?php if(isAdmin()): ?>
-                    <li class="<?php echo $current_page == 'utenti' ? 'active' : ''; ?>">
-                        <a href="/pages/utenti.php" class="sidebar-link" data-tooltip="Utenti">
-                            <i class="bi bi-person-gear"></i>
-                            <span class="link-text">Utenti</span>
+                    <?php if(isAdmin()): ?>
+                        <li class="<?php echo $current_page == 'utenti' ? 'active' : ''; ?>">
+                            <a href="/pages/utenti.php" class="sidebar-link" data-tooltip="Utenti">
+                                <i class="bi bi-person-gear"></i>
+                                <span class="link-text">Utenti</span>
+                            </a>
+                        </li>
+                        <li class="<?php echo $current_page == 'impostazioni' ? 'active' : ''; ?>">
+                            <a href="/pages/impostazioni.php" class="sidebar-link" data-tooltip="Impostazioni">
+                                <i class="bi bi-gear"></i>
+                                <span class="link-text">Impostazioni</span>
+                            </a>
+                        </li>
+                        <li class="<?php echo $current_page == 'audit' ? 'active' : ''; ?>">
+                            <a href="/pages/audit.php" class="sidebar-link" data-tooltip="Audit Log">
+                                <i class="bi bi-shield-check"></i>
+                                <span class="link-text">Audit Log</span>
+                            </a>
+                        </li>
+                        <li class="<?php echo $current_page == 'backup' ? 'active' : ''; ?>">
+                            <a href="/pages/backup.php" class="sidebar-link" data-tooltip="Backup/Restore">
+                                <i class="bi bi-database-down"></i>
+                                <span class="link-text">Backup/Restore</span>
+                            </a>
+                        </li>
+                        <li class="<?php echo $current_page == 'automation' ? 'active' : ''; ?>">
+                            <a href="/pages/automation.php" class="sidebar-link" data-tooltip="Automazioni">
+                                <i class="bi bi-gear"></i>
+                                <span class="link-text">Automazioni</span>
+                            </a>
+                        </li>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <li class="<?php echo $current_page == 'diagnostica' ? 'active' : ''; ?>">
+                        <a href="/pages/diagnostica.php" class="sidebar-link" data-tooltip="Diagnostica">
+                            <i class="bi bi-bug"></i>
+                            <span class="link-text">Diagnostica</span>
                         </a>
                     </li>
-                    <li class="<?php echo $current_page == 'impostazioni' ? 'active' : ''; ?>">
-                        <a href="/pages/impostazioni.php" class="sidebar-link" data-tooltip="Impostazioni">
-                            <i class="bi bi-gear"></i>
-                            <span class="link-text">Impostazioni</span>
-                        </a>
-                    </li>
-                    <li class="<?php echo $current_page == 'audit' ? 'active' : ''; ?>">
-                        <a href="/pages/audit.php" class="sidebar-link" data-tooltip="Audit Log">
-                            <i class="bi bi-shield-check"></i>
-                            <span class="link-text">Audit Log</span>
-                        </a>
-                    </li>
-                    <li class="<?php echo $current_page == 'backup' ? 'active' : ''; ?>">
-                        <a href="/pages/backup.php" class="sidebar-link" data-tooltip="Backup/Restore">
-                            <i class="bi bi-database-down"></i>
-                            <span class="link-text">Backup/Restore</span>
-                        </a>
-                    </li>
-                    <li class="<?php echo $current_page == 'automation' ? 'active' : ''; ?>">
-                        <a href="/pages/automation.php" class="sidebar-link" data-tooltip="Automazioni">
-                            <i class="bi bi-gear"></i>
-                            <span class="link-text">Automazioni</span>
+                    <li class="<?php echo $current_page == 'profilo' ? 'active' : ''; ?>">
+                        <a href="/pages/profilo.php" class="sidebar-link" data-tooltip="Profilo">
+                            <i class="bi bi-person-circle"></i>
+                            <span class="link-text">Profilo</span>
                         </a>
                     </li>
                 <?php endif; ?>
             </ul>
 
-            <?php if(!empty($notifications)): ?>
+            <?php if(!empty($notifications) && !$isDeveloper): ?>
                 <div class="p-3">
                     <div class="card bg-dark text-white sidebar-reminders">
                         <div class="card-body p-3">

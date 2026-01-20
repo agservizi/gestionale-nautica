@@ -17,6 +17,16 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' https://c
 // Richiedi login per tutte le pagine
 requireLogin();
 
+// Limita il ruolo sviluppatore solo alle pagine diagnostiche
+if (function_exists('isDeveloper') && isDeveloper()) {
+    $allowedDeveloperPages = ['diagnostica', 'profilo'];
+    $currentPage = basename($_SERVER['PHP_SELF'], '.php');
+    if (!in_array($currentPage, $allowedDeveloperPages, true)) {
+        header('Location: /pages/diagnostica.php');
+        exit;
+    }
+}
+
 // Scheduler interno (no cron)
 if (function_exists('runScheduledJobs')) {
     runScheduledJobs();

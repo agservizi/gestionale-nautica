@@ -5,6 +5,12 @@ require_once __DIR__ . '/../../includes/functions.php';
 
 requireLogin();
 
+if (function_exists('isDeveloper') && isDeveloper()) {
+    http_response_code(403);
+    echo json_encode(['error' => 'forbidden'], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 header('Content-Type: application/json; charset=utf-8');
 
 $q = trim($_GET['q'] ?? '');
