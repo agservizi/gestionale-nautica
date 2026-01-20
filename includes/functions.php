@@ -109,6 +109,7 @@ function createCliente($data) {
     $db = getDB();
     $codiceFiscale = normalizeCodiceFiscale($data['codice_fiscale'] ?? null);
     $scadenzaPatente = $data['data_scadenza_patente'] ?? null;
+    $occhiali = isset($data['occhiali']) ? 1 : 0;
 
     if (!empty($data['data_conseguimento_patente']) && $codiceFiscale) {
         $birthDate = getBirthDateFromCodiceFiscale($codiceFiscale);
@@ -120,8 +121,12 @@ function createCliente($data) {
         }
     }
     $stmt = $db->prepare("
-        INSERT INTO clienti (nome, cognome, telefono, email, codice_fiscale, tipo_pratica, numero_patente, data_conseguimento_patente, data_scadenza_patente, note)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO clienti (
+            nome, cognome, telefono, email, codice_fiscale, indirizzo, citta,
+            tipo_pratica, numero_patente, data_conseguimento_patente, data_scadenza_patente,
+            numero_registro_iscrizione, data_iscrizione, occhiali, note
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
     $stmt->execute([
         $data['nome'],
@@ -129,10 +134,15 @@ function createCliente($data) {
         $data['telefono'] ?? null,
         $data['email'] ?? null,
         $codiceFiscale,
+        $data['indirizzo'] ?? null,
+        $data['citta'] ?? null,
         $data['tipo_pratica'] ?? 'Altro',
         $data['numero_patente'] ?? null,
         $data['data_conseguimento_patente'] ?? null,
         $scadenzaPatente,
+        $data['numero_registro_iscrizione'] ?? null,
+        $data['data_iscrizione'] ?? null,
+        $occhiali,
         $data['note'] ?? null
     ]);
     return $db->lastInsertId();
@@ -142,6 +152,7 @@ function updateCliente($id, $data) {
     $db = getDB();
     $codiceFiscale = normalizeCodiceFiscale($data['codice_fiscale'] ?? null);
     $scadenzaPatente = $data['data_scadenza_patente'] ?? null;
+    $occhiali = isset($data['occhiali']) ? 1 : 0;
 
     if (!empty($data['data_conseguimento_patente']) && $codiceFiscale) {
         $birthDate = getBirthDateFromCodiceFiscale($codiceFiscale);
@@ -154,7 +165,9 @@ function updateCliente($id, $data) {
     }
     $stmt = $db->prepare("
         UPDATE clienti 
-        SET nome = ?, cognome = ?, telefono = ?, email = ?, codice_fiscale = ?, tipo_pratica = ?, numero_patente = ?, data_conseguimento_patente = ?, data_scadenza_patente = ?, note = ?
+        SET nome = ?, cognome = ?, telefono = ?, email = ?, codice_fiscale = ?, indirizzo = ?, citta = ?,
+            tipo_pratica = ?, numero_patente = ?, data_conseguimento_patente = ?, data_scadenza_patente = ?,
+            numero_registro_iscrizione = ?, data_iscrizione = ?, occhiali = ?, note = ?
         WHERE id = ?
     ");
     return $stmt->execute([
@@ -163,10 +176,15 @@ function updateCliente($id, $data) {
         $data['telefono'] ?? null,
         $data['email'] ?? null,
         $codiceFiscale,
+        $data['indirizzo'] ?? null,
+        $data['citta'] ?? null,
         $data['tipo_pratica'] ?? 'Altro',
         $data['numero_patente'] ?? null,
         $data['data_conseguimento_patente'] ?? null,
         $scadenzaPatente,
+        $data['numero_registro_iscrizione'] ?? null,
+        $data['data_iscrizione'] ?? null,
+        $occhiali,
         $data['note'] ?? null,
         $id
     ]);

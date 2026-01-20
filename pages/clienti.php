@@ -4,7 +4,7 @@
  */
 require_once __DIR__ . '/../includes/header.php';
 
-// Gestione richieste POST (create/update/delete)
+// Gestione richieste POST (delete)
 $message = '';
 $message_type = '';
 
@@ -14,68 +14,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message_type = 'danger';
     } elseif(isset($_POST['action'])) {
         switch($_POST['action']) {
-            case 'create':
-                $nome = trim($_POST['nome'] ?? '');
-                $cognome = trim($_POST['cognome'] ?? '');
-                $email = trim($_POST['email'] ?? '');
-                $tipo_pratica = trim($_POST['tipo_pratica'] ?? '');
-                $codice_fiscale = strtoupper(trim($_POST['codice_fiscale'] ?? ''));
-                if ($nome === '' || $cognome === '') {
-                    $message = 'Nome e cognome sono obbligatori.';
-                    $message_type = 'danger';
-                    break;
-                }
-                if ($tipo_pratica === '') {
-                    $message = 'Tipo pratica è obbligatorio.';
-                    $message_type = 'danger';
-                    break;
-                }
-                if ($codice_fiscale !== '' && !preg_match('/^[A-Z0-9]{16}$/', $codice_fiscale)) {
-                    $message = 'Codice fiscale non valido.';
-                    $message_type = 'danger';
-                    break;
-                }
-                if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    $message = 'Email non valida.';
-                    $message_type = 'danger';
-                    break;
-                }
-                $id = createCliente($_POST);
-                logAudit('create', 'cliente', $id, $cognome . ' ' . $nome);
-                $message = 'Cliente creato con successo!';
-                $message_type = 'success';
-                break;
-            case 'update':
-                $nome = trim($_POST['nome'] ?? '');
-                $cognome = trim($_POST['cognome'] ?? '');
-                $email = trim($_POST['email'] ?? '');
-                $tipo_pratica = trim($_POST['tipo_pratica'] ?? '');
-                $codice_fiscale = strtoupper(trim($_POST['codice_fiscale'] ?? ''));
-                if ($nome === '' || $cognome === '') {
-                    $message = 'Nome e cognome sono obbligatori.';
-                    $message_type = 'danger';
-                    break;
-                }
-                if ($tipo_pratica === '') {
-                    $message = 'Tipo pratica è obbligatorio.';
-                    $message_type = 'danger';
-                    break;
-                }
-                if ($codice_fiscale !== '' && !preg_match('/^[A-Z0-9]{16}$/', $codice_fiscale)) {
-                    $message = 'Codice fiscale non valido.';
-                    $message_type = 'danger';
-                    break;
-                }
-                if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    $message = 'Email non valida.';
-                    $message_type = 'danger';
-                    break;
-                }
-                updateCliente($_POST['id'], $_POST);
-                logAudit('update', 'cliente', $_POST['id']);
-                $message = 'Cliente aggiornato con successo!';
-                $message_type = 'success';
-                break;
             case 'delete':
                 deleteCliente($_POST['id']);
                 logAudit('delete', 'cliente', $_POST['id']);
@@ -112,8 +50,9 @@ $clienti = getClienti($search);
         <div class="row mb-4">
             <div class="col-12 d-flex justify-content-between align-items-center">
                 <h1 class="h3">Clienti (<?php echo count($clienti); ?>)</h1>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCliente">
+                <a href="/pages/cliente_form.php" class="btn btn-primary">
                     <i class="bi bi-plus-lg"></i> Nuovo Cliente
+                </a>
             </div>
         </div>
         
@@ -151,11 +90,11 @@ $clienti = getClienti($search);
                                                    class="btn btn-sm btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Dettaglio">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
-                                                <button class="btn btn-sm btn-warning" 
-                                                    onclick="editCliente(<?php echo htmlspecialchars(json_encode($cliente)); ?>)"
+                                                <a class="btn btn-sm btn-warning" 
+                                                    href="/pages/cliente_form.php?id=<?php echo $cliente['id']; ?>"
                                                     data-bs-toggle="tooltip" data-bs-placement="top" title="Modifica">
                                                     <i class="bi bi-pencil"></i>
-                                                </button>
+                                                </a>
                                                 <button class="btn btn-sm btn-danger" 
                                                     onclick="deleteCliente(<?php echo $cliente['id']; ?>)"
                                                     data-bs-toggle="tooltip" data-bs-placement="top" title="Elimina">
@@ -174,133 +113,6 @@ $clienti = getClienti($search);
         
     </div>
     
-</div>
-
-<!-- Modal Cliente -->
-<div class="modal fade" id="modalCliente" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <form method="POST" id="formCliente">
-                <?php echo csrf_input(); ?>
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalClienteTitle">Nuovo Cliente</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" name="action" id="clienteAction" value="create">
-                    <input type="hidden" name="id" id="clienteId">
-                    <input type="hidden" name="cliente_id" id="clienteIdAlt">
-                    
-                    <div class="mb-4">
-                        <h6 class="mb-3 text-uppercase text-muted">Anagrafica</h6>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="clienteNome" class="form-label">Nome *</label>
-                                <input type="text" class="form-control" id="clienteNome" name="nome" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="clienteCognome" class="form-label">Cognome *</label>
-                                <input type="text" class="form-control" id="clienteCognome" name="cognome" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="clienteTelefono" class="form-label">Telefono</label>
-                                <input type="text" class="form-control" id="clienteTelefono" name="telefono">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="clienteEmail" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="clienteEmail" name="email">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="clienteCodiceFiscale" class="form-label">Codice Fiscale</label>
-                                <input type="text" class="form-control" id="clienteCodiceFiscale" name="codice_fiscale" maxlength="16">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <h6 class="mb-3 text-uppercase text-muted">Residenza</h6>
-                        <div class="row">
-                            <div class="col-md-8 mb-3">
-                                <label for="clienteIndirizzo" class="form-label">Indirizzo</label>
-                                <input type="text" class="form-control" id="clienteIndirizzo" name="indirizzo">
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="clienteCitta" class="form-label">Città</label>
-                                <input type="text" class="form-control" id="clienteCitta" name="citta">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <h6 class="mb-3 text-uppercase text-muted">Tipo Pratica</h6>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="clienteTipoPratica" class="form-label">Tipo Pratica *</label>
-                                <select class="form-select" id="clienteTipoPratica" name="tipo_pratica" required>
-                                    <option value="">-- Seleziona --</option>
-                                    <option value="Patente entro 12 miglia">Patente entro 12 miglia</option>
-                                    <option value="Patente oltre 12 miglia">Patente oltre 12 miglia</option>
-                                    <option value="Patente D1">Patente D1</option>
-                                    <option value="Rinnovo">Rinnovo</option>
-                                    <option value="Duplicato">Duplicato</option>
-                                    <option value="Altro">Altro</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <h6 class="mb-3 text-uppercase text-muted">Patente</h6>
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="clienteNumeroPatente" class="form-label">Numero Patente</label>
-                                <input type="text" class="form-control" id="clienteNumeroPatente" name="numero_patente">
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="clienteDataConseguimento" class="form-label">Data Conseguimento</label>
-                                <input type="date" class="form-control" id="clienteDataConseguimento" name="data_conseguimento_patente">
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="clienteDataScadenza" class="form-label">Data Scadenza</label>
-                                <input type="date" class="form-control" id="clienteDataScadenza" name="data_scadenza_patente">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <h6 class="mb-3 text-uppercase text-muted">Iscrizione</h6>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="clienteNumeroRegistro" class="form-label">Numero Registro Iscrizione</label>
-                                <input type="text" class="form-control" id="clienteNumeroRegistro" name="numero_registro_iscrizione">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="clienteDataIscrizione" class="form-label">Data Iscrizione</label>
-                                <input type="date" class="form-control" id="clienteDataIscrizione" name="data_iscrizione">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <h6 class="mb-3 text-uppercase text-muted">Idoneità</h6>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="clienteOcchiali" name="occhiali" value="1">
-                            <label class="form-check-label" for="clienteOcchiali">Uso occhiali</label>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <h6 class="mb-3 text-uppercase text-muted">Note</h6>
-                        <textarea class="form-control" id="clienteNote" name="note" rows="3"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                    <button type="submit" class="btn btn-primary">Salva</button>
-                </div>
-            </form>
-        </div>
-    </div>
 </div>
 
 <!-- Modal Delete Confirm -->
@@ -333,31 +145,6 @@ $clienti = getClienti($search);
 </div>
 
 <script nonce="<?php echo $cspNonce; ?>">
-// Funzione per modificare cliente
-function editCliente(cliente) {
-    document.getElementById('modalClienteTitle').textContent = 'Modifica Cliente';
-    document.getElementById('clienteAction').value = 'update';
-    document.getElementById('clienteId').value = cliente.id;
-    document.getElementById('clienteIdAlt').value = cliente.id;
-    document.getElementById('clienteNome').value = cliente.nome;
-    document.getElementById('clienteCognome').value = cliente.cognome;
-    document.getElementById('clienteTelefono').value = cliente.telefono || '';
-    document.getElementById('clienteEmail').value = cliente.email || '';
-    document.getElementById('clienteCodiceFiscale').value = cliente.codice_fiscale || '';
-    document.getElementById('clienteTipoPratica').value = cliente.tipo_pratica || '';
-    document.getElementById('clienteNumeroPatente').value = cliente.numero_patente || '';
-    document.getElementById('clienteDataConseguimento').value = cliente.data_conseguimento_patente || '';
-    document.getElementById('clienteDataScadenza').value = cliente.data_scadenza_patente || '';
-    document.getElementById('clienteIndirizzo').value = cliente.indirizzo || '';
-    document.getElementById('clienteCitta').value = cliente.citta || '';
-    document.getElementById('clienteNumeroRegistro').value = cliente.numero_registro_iscrizione || '';
-    document.getElementById('clienteDataIscrizione').value = cliente.data_iscrizione || '';
-    document.getElementById('clienteOcchiali').checked = cliente.occhiali == 1;
-    document.getElementById('clienteNote').value = cliente.note || '';
-    
-    new bootstrap.Modal(document.getElementById('modalCliente')).show();
-}
-
 // Funzione per eliminare cliente
 function deleteCliente(id) {
     document.getElementById('deleteClienteId').value = id;
@@ -365,16 +152,6 @@ function deleteCliente(id) {
     document.getElementById('deleteClienteSubmit').disabled = true;
     new bootstrap.Modal(document.getElementById('modalDeleteCliente')).show();
 }
-
-// Reset form quando il modal viene chiuso
-document.getElementById('modalCliente').addEventListener('hidden.bs.modal', function () {
-    document.getElementById('formCliente').reset();
-    document.getElementById('modalClienteTitle').textContent = 'Nuovo Cliente';
-    document.getElementById('clienteAction').value = 'create';
-    document.getElementById('clienteId').value = '';
-    document.getElementById('clienteIdAlt').value = '';
-    document.getElementById('clienteOcchiali').checked = false;
-});
 
 document.getElementById('deleteClienteConfirm').addEventListener('input', function() {
     document.getElementById('deleteClienteSubmit').disabled = this.value.trim().toUpperCase() !== 'ELIMINA';
