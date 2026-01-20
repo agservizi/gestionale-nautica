@@ -8,6 +8,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 $cacheDir = __DIR__ . '/../../uploads/cache';
 $cacheFile = $cacheDir . '/istat_comuni.json';
+$localFile = __DIR__ . '/../../assets/data/istat_comuni.json';
 $cacheTtl = 60 * 60 * 24 * 7;
 
 $query = trim($_GET['q'] ?? '');
@@ -43,6 +44,15 @@ if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $cacheTtl) {
     }
 }
 
+if (file_exists($localFile)) {
+    $raw = file_get_contents($localFile);
+    $payload = json_decode($raw, true);
+    if (is_array($payload) && isset($payload['comuni']) && is_array($payload['comuni'])) {
+        outputComuni($payload['comuni'], $query, $limit);
+        exit;
+    }
+}
+
 $url = 'https://www.istat.it/storage/codici-unita-amministrative/Elenco-comuni-italiani.xlsx';
 $tmpFile = $cacheDir . '/istat_comuni.xlsx';
 
@@ -70,23 +80,23 @@ try {
     }
     file_put_contents($tmpFile, $data);
 
-    $spreadsheet = IOFactory::load($tmpFile);
+    $reader = IOFactory::createReaderForFile($tmpFile);
+    $reader->setReadDataOnly(true);
+    $spreadsheet = $reader->load($tmpFile);
     $sheet = $spreadsheet->getActiveSheet();
-    $rows = $sheet->toArray(null, true, true, true);
 
-    if (empty($rows)) {
-        throw new Exception('Empty dataset');
-    }
-
-    $headers = array_shift($rows);
     $denCol = null;
-    foreach ($headers as $col => $header) {
+    $headerRow = $sheet->getRowIterator(1, 1)->current();
+    $cellIterator = $headerRow->getCellIterator();
+    $cellIterator->setIterateOnlyExistingCells(false);
+    foreach ($cellIterator as $cell) {
+        $header = $cell->getValue();
         $headerLower = strtolower(trim((string)$header));
         if ($headerLower === '') {
             continue;
         }
         if (strpos($headerLower, 'denominazione') !== false) {
-            $denCol = $col;
+            $denCol = $cell->getColumn();
             if (strpos($headerLower, 'italiano') !== false || strpos($headerLower, 'comune') !== false) {
                 break;
             }
@@ -98,8 +108,11 @@ try {
     }
 
     $comuni = [];
-    foreach ($rows as $row) {
-        $name = trim((string)($row[$denCol] ?? ''));
+    $rowIterator = $sheet->getRowIterator(2);
+    foreach ($rowIterator as $row) {
+        $rowIndex = $row->getRowIndex();
+        $cell = $sheet->getCell($denCol . $rowIndex);
+        $name = trim((string)$cell->getValue());
         if ($name === '') {
             continue;
         }
