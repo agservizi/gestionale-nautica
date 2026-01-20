@@ -136,11 +136,13 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
                         <div class="row">
                             <div class="col-md-8 mb-3">
                                 <label for="clienteIndirizzo" class="form-label">Indirizzo</label>
-                                <input type="text" class="form-control" id="clienteIndirizzo" name="indirizzo" value="<?php echo htmlspecialchars($cliente['indirizzo'] ?? ''); ?>">
+                                <input type="text" class="form-control" id="clienteIndirizzo" name="indirizzo" value="<?php echo htmlspecialchars($cliente['indirizzo'] ?? ''); ?>" list="indirizzoSuggerimenti" autocomplete="off">
+                                <datalist id="indirizzoSuggerimenti"></datalist>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label for="clienteCitta" class="form-label">Città</label>
-                                <input type="text" class="form-control" id="clienteCitta" name="citta" value="<?php echo htmlspecialchars($cliente['citta'] ?? ''); ?>">
+                                <input type="text" class="form-control" id="clienteCitta" name="citta" value="<?php echo htmlspecialchars($cliente['citta'] ?? ''); ?>" list="cittaSuggerimenti" autocomplete="off">
+                                <datalist id="cittaSuggerimenti"></datalist>
                             </div>
                         </div>
                     </div>
@@ -242,5 +244,109 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
         </div>
     </div>
 </div>
+
+<script nonce="<?php echo $cspNonce; ?>">
+const indirizzoInput = document.getElementById('clienteIndirizzo');
+const cittaInput = document.getElementById('clienteCitta');
+const indirizzoDatalist = document.getElementById('indirizzoSuggerimenti');
+const cittaDatalist = document.getElementById('cittaSuggerimenti');
+
+let comuniIstat = [];
+let addressSuggestions = {};
+
+async function loadComuniIstat() {
+    try {
+        const res = await fetch('/pages/api/istat_comuni.php', { headers: { 'Accept': 'application/json' } });
+        const data = await res.json();
+        if (Array.isArray(data.comuni)) {
+            comuniIstat = data.comuni;
+            if (cittaDatalist) {
+                cittaDatalist.innerHTML = comuniIstat.map(c => `<option value="${c}"></option>`).join('');
+            }
+        }
+    } catch (e) {
+        comuniIstat = [];
+    }
+}
+
+function normalizeCityName(name) {
+    if (!name) return '';
+    if (!comuniIstat.length) return name;
+    const lowered = name.toLowerCase();
+    const match = comuniIstat.find(c => c.toLowerCase() === lowered);
+    return match || name;
+}
+
+function buildAddressLabel(item) {
+    const addr = item.address || {};
+    const road = addr.road || addr.pedestrian || addr.footway || '';
+    const house = addr.house_number || '';
+    if (road && house) {
+        return `${road} ${house}`.trim();
+    }
+    return item.display_name || '';
+}
+
+function extractCity(item) {
+    const addr = item.address || {};
+    return addr.city || addr.town || addr.village || addr.municipality || addr.county || '';
+}
+
+let debounceTimer;
+function debounceAddressSearch() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(runAddressSearch, 350);
+}
+
+async function runAddressSearch() {
+    if (!indirizzoInput) return;
+    const query = indirizzoInput.value.trim();
+    if (query.length < 4) {
+        if (indirizzoDatalist) indirizzoDatalist.innerHTML = '';
+        addressSuggestions = {};
+        return;
+    }
+
+    const citta = cittaInput && cittaInput.value.trim() ? `, ${cittaInput.value.trim()}` : '';
+    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=it&q=${encodeURIComponent(query + citta)}`;
+
+    try {
+        const res = await fetch(url, { headers: { 'Accept-Language': 'it' } });
+        const data = await res.json();
+        addressSuggestions = {};
+        if (indirizzoDatalist) {
+            indirizzoDatalist.innerHTML = '';
+            data.forEach(item => {
+                const label = buildAddressLabel(item);
+                const city = normalizeCityName(extractCity(item));
+                if (label) {
+                    addressSuggestions[label] = city;
+                    const opt = document.createElement('option');
+                    opt.value = label;
+                    indirizzoDatalist.appendChild(opt);
+                }
+            });
+        }
+    } catch (e) {
+        addressSuggestions = {};
+    }
+}
+
+function applyCityFromAddress() {
+    if (!indirizzoInput || !cittaInput) return;
+    const label = indirizzoInput.value.trim();
+    if (label && addressSuggestions[label]) {
+        cittaInput.value = addressSuggestions[label];
+    }
+}
+
+if (indirizzoInput) {
+    indirizzoInput.addEventListener('input', debounceAddressSearch);
+    indirizzoInput.addEventListener('change', applyCityFromAddress);
+    indirizzoInput.addEventListener('blur', applyCityFromAddress);
+}
+
+loadComuniIstat();
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
