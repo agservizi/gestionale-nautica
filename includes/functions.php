@@ -202,6 +202,22 @@ function countClienti() {
     return $stmt->fetch()['count'];
 }
 
+function countClientiFiltered($search = '') {
+    $db = getDB();
+    $sql = "SELECT COUNT(*) as count FROM clienti WHERE 1=1";
+    $params = [];
+
+    if (!empty($search)) {
+        $sql .= " AND (nome LIKE ? OR cognome LIKE ? OR telefono LIKE ? OR email LIKE ? OR codice_fiscale LIKE ?)";
+        $searchParam = "%$search%";
+        $params = [$searchParam, $searchParam, $searchParam, $searchParam, $searchParam];
+    }
+
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    return (int)$stmt->fetch()['count'];
+}
+
 // ============================================
 // PRATICHE - CRUD
 // ============================================

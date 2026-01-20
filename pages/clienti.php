@@ -24,9 +24,18 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Gestione ricerca
+// Gestione ricerca + paginazione
 $search = $_GET['search'] ?? '';
-$clienti = getClienti($search);
+$perPage = 10;
+$page = max(1, (int)($_GET['page'] ?? 1));
+$offset = ($page - 1) * $perPage;
+$totalClienti = countClientiFiltered($search);
+$totalPages = max(1, (int)ceil($totalClienti / $perPage));
+if ($page > $totalPages) {
+    $page = $totalPages;
+    $offset = ($page - 1) * $perPage;
+}
+$clienti = getClienti($search, $perPage, $offset);
 ?>
 
 <?php include __DIR__ . '/../includes/sidebar.php'; ?>
@@ -49,7 +58,7 @@ $clienti = getClienti($search);
         
         <div class="row mb-4">
             <div class="col-12 d-flex justify-content-between align-items-center">
-                <h1 class="h3">Clienti (<?php echo count($clienti); ?>)</h1>
+                <h1 class="h3">Clienti (<?php echo $totalClienti; ?>)</h1>
                 <a href="/pages/cliente_form.php" class="btn btn-primary">
                     <i class="bi bi-plus-lg"></i> Nuovo Cliente
                 </a>
@@ -126,6 +135,28 @@ $clienti = getClienti($search);
                 </div>
             </div>
         </div>
+
+        <?php if($totalPages > 1): ?>
+            <nav aria-label="Paginazione clienti" class="mt-3">
+                <ul class="pagination justify-content-end">
+                    <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
+                        <a class="page-link" href="?<?php echo http_build_query(['search' => $search, 'page' => $page - 1]); ?>" aria-label="Precedente">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    <?php for($p = 1; $p <= $totalPages; $p++): ?>
+                        <li class="page-item <?php echo $p === $page ? 'active' : ''; ?>">
+                            <a class="page-link" href="?<?php echo http_build_query(['search' => $search, 'page' => $p]); ?>"><?php echo $p; ?></a>
+                        </li>
+                    <?php endfor; ?>
+                    <li class="page-item <?php echo $page >= $totalPages ? 'disabled' : ''; ?>">
+                        <a class="page-link" href="?<?php echo http_build_query(['search' => $search, 'page' => $page + 1]); ?>" aria-label="Successiva">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        <?php endif; ?>
         
     </div>
     
