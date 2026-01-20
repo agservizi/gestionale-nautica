@@ -136,7 +136,7 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
                         <div class="row">
                             <div class="col-md-8 mb-3">
                                 <label for="clienteIndirizzo" class="form-label">Indirizzo</label>
-                                <input type="text" class="form-control" id="clienteIndirizzo" name="indirizzo" value="<?php echo htmlspecialchars($cliente['indirizzo'] ?? ''); ?>" list="indirizzoSuggerimenti" autocomplete="off">
+                                <input type="text" class="form-control" id="clienteIndirizzo" name="indirizzo" value="<?php echo htmlspecialchars($cliente['indirizzo'] ?? ''); ?>" list="indirizzoSuggerimenti" autocomplete="off" required pattern=".*\d+.*" title="Inserisci anche il numero civico">
                                 <datalist id="indirizzoSuggerimenti"></datalist>
                             </div>
                             <div class="col-md-4 mb-3">
@@ -307,11 +307,11 @@ async function runAddressSearch() {
         return;
     }
 
-    const searchQuery = query.replace(/\s+\d+[a-zA-Z]?$/u, '').trim();
-    const effectiveQuery = searchQuery !== '' ? searchQuery : query;
+    const numberMatch = query.match(/\s(\d+[a-zA-Z]?)$/u);
+    const numberSuffix = numberMatch ? numberMatch[1] : '';
 
     const citta = cittaInput && cittaInput.value.trim() ? `, ${cittaInput.value.trim()}` : ', Italia';
-    const url = `/pages/api/osm_search.php?q=${encodeURIComponent(effectiveQuery + citta)}&limit=6`;
+    const url = `/pages/api/osm_search.php?q=${encodeURIComponent(query + citta)}&limit=6`;
 
     try {
         const res = await fetch(url, { headers: { 'Accept-Language': 'it' } });
@@ -327,6 +327,14 @@ async function runAddressSearch() {
                     const opt = document.createElement('option');
                     opt.value = label;
                     indirizzoDatalist.appendChild(opt);
+
+                    if (numberSuffix) {
+                        const labelWithNumber = `${label} ${numberSuffix}`.trim();
+                        addressSuggestions[labelWithNumber] = city;
+                        const optNum = document.createElement('option');
+                        optNum.value = labelWithNumber;
+                        indirizzoDatalist.appendChild(optNum);
+                    }
                 }
             });
         }

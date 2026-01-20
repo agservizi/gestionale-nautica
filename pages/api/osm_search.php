@@ -50,9 +50,8 @@ if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $cacheTtl) {
     exit;
 }
 
-$url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=' . $limit . '&countrycodes=it&q=' . urlencode($q);
-
-try {
+function nominatimSearch($query, $limit) {
+    $url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=' . $limit . '&countrycodes=it&q=' . urlencode($query);
     $context = stream_context_create([
         'http' => [
             'timeout' => 10,
@@ -62,6 +61,18 @@ try {
     $data = file_get_contents($url, false, $context);
     if ($data === false) {
         throw new Exception('Nominatim request failed');
+    }
+    return $data;
+}
+
+try {
+    $data = nominatimSearch($q, $limit);
+    $decoded = json_decode($data, true);
+    if (is_array($decoded) && count($decoded) === 0) {
+        $stripped = trim(preg_replace('/\s+\d+[a-zA-Z]?\b/u', '', $q));
+        if ($stripped !== '' && $stripped !== $q) {
+            $data = nominatimSearch($stripped, $limit);
+        }
     }
     file_put_contents($cacheFile, $data);
     echo $data;
