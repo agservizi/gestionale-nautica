@@ -124,7 +124,7 @@ $numero_pratiche = count($pratiche);
                 <div class="card">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Storico Pratiche</h5>
-                        <a href="pratiche.php?cliente_id=<?php echo $cliente_id; ?>" class="btn btn-sm btn-primary">
+                        <a href="/pages/pratica_form.php?cliente_id=<?php echo $cliente_id; ?>" class="btn btn-sm btn-primary">
                             <i class="bi bi-plus-lg"></i> Nuova Pratica
                         </a>
                     </div>

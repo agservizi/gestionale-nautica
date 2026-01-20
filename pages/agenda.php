@@ -4,19 +4,9 @@
  */
 require_once __DIR__ . '/../includes/header.php';
 
-// Gestione POST
+// Gestione POST (delete)
 $message = '';
 $message_type = '';
-
-$agendaWindow = getAgendaTimeWindow();
-$agendaStart = $agendaWindow['start'];
-$agendaEnd = $agendaWindow['end'];
-$agendaDefaultEnd = date('H:i', strtotime($agendaStart . ' +2 hours'));
-if ($agendaDefaultEnd > $agendaEnd) {
-    $agendaDefaultEnd = $agendaEnd;
-}
-$agendaInstructors = getSettingsList('agenda_instructors', ['Vincenzo Scibile', 'Vincenzo Lomiento', 'Luigi Visalli']);
-$agendaLessonTypes = getSettingsList('agenda_lesson_types', ['Guida pratica', 'Esame', 'Altro']);
 
 if($_SERVER['REQUEST_METHOD'] === 'POST') {
     if(!csrf_validate($_POST['csrf_token'] ?? '')) {
@@ -24,36 +14,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message_type = 'danger';
     } elseif(isset($_POST['action'])) {
         switch($_POST['action']) {
-            case 'create':
-                if (empty($_POST['cliente_id']) || empty($_POST['data_guida']) || empty($_POST['orario_inizio']) || empty($_POST['orario_fine']) || empty($_POST['istruttore'])) {
-                    $message = 'Cliente, data, orari e istruttore sono obbligatori.';
-                    $message_type = 'danger';
-                    break;
-                }
-                $dataGuida = new DateTime($_POST['data_guida']);
-                $weekday = (int)$dataGuida->format('N');
-                if ($weekday === 7) {
-                    $message = 'Le guide sono disponibili solo dal lunedì al sabato.';
-                    $message_type = 'danger';
-                    break;
-                }
-                $inizio = $_POST['orario_inizio'];
-                $fine = $_POST['orario_fine'];
-                if ($fine <= $inizio) {
-                    $message = 'L\'orario di fine deve essere successivo a quello di inizio.';
-                    $message_type = 'danger';
-                    break;
-                }
-                if ($inizio < $agendaStart || $fine > $agendaEnd) {
-                    $message = 'Le guide sono consentite solo tra le ' . $agendaStart . ' e le ' . $agendaEnd . '.';
-                    $message_type = 'danger';
-                    break;
-                }
-                createAgenda($_POST);
-                logAudit('create', 'agenda', null, $_POST['data_guida'] ?? null);
-                $message = 'Guida registrata con successo!';
-                $message_type = 'success';
-                break;
             case 'delete':
                 deleteAgenda($_POST['id']);
                 logAudit('delete', 'agenda', $_POST['id']);
@@ -73,12 +33,6 @@ $appYearStart = getAppYearStart();
 
 // Ottieni guide del giorno
 $guide_giorno = getAgendaGuide(['data' => $data_corrente]);
-
-// Ottieni clienti per select
-$clienti = getClienti();
-
-// Ottieni pratiche attive per select
-$pratiche_attive = getPratiche(['stato' => 'In corso']);
 
 // Calendario mensile
 $firstDay = new DateTime(sprintf('%04d-%02d-01', $anno_corrente, $mese_corrente));
@@ -121,9 +75,9 @@ $startWeekday = (int)$firstDay->format('N'); // 1 (Mon) - 7 (Sun)
         <div class="row mb-4">
             <div class="col-12 d-flex justify-content-between align-items-center">
                 <h1 class="h3">Agenda Guide</h1>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalGuida">
+                <a class="btn btn-primary" href="/pages/agenda_form.php?data=<?php echo $data_corrente; ?>">
                     <i class="bi bi-plus-lg"></i> Nuova Guida
-                </button>
+                </a>
             </div>
         </div>
         
@@ -359,95 +313,6 @@ $startWeekday = (int)$firstDay->format('N'); // 1 (Mon) - 7 (Sun)
     
 </div>
 
-<!-- Modal Nuova Guida -->
-<div class="modal fade" id="modalGuida" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="POST">
-                <?php echo csrf_input(); ?>
-                <input type="hidden" name="action" value="create">
-                
-                <div class="modal-header">
-                    <h5 class="modal-title">Nuova Guida/Lezione</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Cliente *</label>
-                        <select name="cliente_id" class="form-select" required>
-                            <option value="">-- Seleziona Cliente --</option>
-                            <?php foreach($clienti as $cli): ?>
-                                <option value="<?php echo $cli['id']; ?>">
-                                    <?php echo htmlspecialchars($cli['cognome'] . ' ' . $cli['nome']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Data *</label>
-                        <input type="date" name="data_guida" class="form-control" 
-                               value="<?php echo $data_corrente; ?>" required>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label class="form-label">Orario Inizio *</label>
-                            <input type="time" name="orario_inizio" class="form-control" value="<?php echo $agendaStart; ?>" min="<?php echo $agendaStart; ?>" max="<?php echo $agendaEnd; ?>" step="900" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">Orario Fine *</label>
-                            <input type="time" name="orario_fine" class="form-control" value="<?php echo $agendaDefaultEnd; ?>" min="<?php echo $agendaStart; ?>" max="<?php echo $agendaEnd; ?>" step="900" required>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Istruttore *</label>
-                        <select name="istruttore" class="form-select" required>
-                            <option value="">-- Seleziona --</option>
-                            <?php foreach($agendaInstructors as $instr): ?>
-                                <option value="<?php echo htmlspecialchars($instr); ?>"><?php echo htmlspecialchars($instr); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Tipo Lezione</label>
-                        <select name="tipo_lezione" class="form-select">
-                            <option value="">-- Seleziona --</option>
-                            <?php foreach($agendaLessonTypes as $type): ?>
-                                <option value="<?php echo htmlspecialchars($type); ?>"><?php echo htmlspecialchars($type); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Pratica Collegata (opzionale)</label>
-                        <select name="pratica_id" class="form-select">
-                            <option value="">-- Nessuna --</option>
-                            <?php foreach($pratiche_attive as $prat): ?>
-                                <option value="<?php echo $prat['id']; ?>">
-                                    #<?php echo $prat['id']; ?> - <?php echo htmlspecialchars($prat['cliente_nome']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Note</label>
-                        <textarea name="note" class="form-control" rows="2"></textarea>
-                    </div>
-                </div>
-                
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                    <button type="submit" class="btn btn-primary">Registra Guida</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 <script>
 window.CSRF_TOKEN = "<?php echo csrf_token(); ?>";
