@@ -178,7 +178,7 @@ $clienti = getClienti($search);
 
 <!-- Modal Cliente -->
 <div class="modal fade" id="modalCliente" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <form method="POST" id="formCliente">
                 <?php echo csrf_input(); ?>
@@ -189,60 +189,108 @@ $clienti = getClienti($search);
                 <div class="modal-body">
                     <input type="hidden" name="action" id="clienteAction" value="create">
                     <input type="hidden" name="id" id="clienteId">
+                    <input type="hidden" name="cliente_id" id="clienteIdAlt">
                     
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="clienteNome" class="form-label">Nome *</label>
-                            <input type="text" class="form-control" id="clienteNome" name="nome" required>
+                    <div class="mb-4">
+                        <h6 class="mb-3 text-uppercase text-muted">Anagrafica</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="clienteNome" class="form-label">Nome *</label>
+                                <input type="text" class="form-control" id="clienteNome" name="nome" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="clienteCognome" class="form-label">Cognome *</label>
+                                <input type="text" class="form-control" id="clienteCognome" name="cognome" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="clienteTelefono" class="form-label">Telefono</label>
+                                <input type="text" class="form-control" id="clienteTelefono" name="telefono">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="clienteEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="clienteEmail" name="email">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="clienteCodiceFiscale" class="form-label">Codice Fiscale</label>
+                                <input type="text" class="form-control" id="clienteCodiceFiscale" name="codice_fiscale" maxlength="16">
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="clienteCognome" class="form-label">Cognome *</label>
-                            <input type="text" class="form-control" id="clienteCognome" name="cognome" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="mb-3 text-uppercase text-muted">Residenza</h6>
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="clienteIndirizzo" class="form-label">Indirizzo</label>
+                                <input type="text" class="form-control" id="clienteIndirizzo" name="indirizzo">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="clienteCitta" class="form-label">Città</label>
+                                <input type="text" class="form-control" id="clienteCitta" name="citta">
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="clienteTelefono" class="form-label">Telefono</label>
-                            <input type="text" class="form-control" id="clienteTelefono" name="telefono">
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="mb-3 text-uppercase text-muted">Tipo Pratica</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="clienteTipoPratica" class="form-label">Tipo Pratica *</label>
+                                <select class="form-select" id="clienteTipoPratica" name="tipo_pratica" required>
+                                    <option value="">-- Seleziona --</option>
+                                    <option value="Patente entro 12 miglia">Patente entro 12 miglia</option>
+                                    <option value="Patente oltre 12 miglia">Patente oltre 12 miglia</option>
+                                    <option value="Patente D1">Patente D1</option>
+                                    <option value="Rinnovo">Rinnovo</option>
+                                    <option value="Duplicato">Duplicato</option>
+                                    <option value="Altro">Altro</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="clienteEmail" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="clienteEmail" name="email">
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="mb-3 text-uppercase text-muted">Patente</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="clienteNumeroPatente" class="form-label">Numero Patente</label>
+                                <input type="text" class="form-control" id="clienteNumeroPatente" name="numero_patente">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="clienteDataConseguimento" class="form-label">Data Conseguimento</label>
+                                <input type="date" class="form-control" id="clienteDataConseguimento" name="data_conseguimento_patente">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="clienteDataScadenza" class="form-label">Data Scadenza</label>
+                                <input type="date" class="form-control" id="clienteDataScadenza" name="data_scadenza_patente">
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="clienteCodiceFiscale" class="form-label">Codice Fiscale</label>
-                            <input type="text" class="form-control" id="clienteCodiceFiscale" name="codice_fiscale" maxlength="16">
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="mb-3 text-uppercase text-muted">Iscrizione</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="clienteNumeroRegistro" class="form-label">Numero Registro Iscrizione</label>
+                                <input type="text" class="form-control" id="clienteNumeroRegistro" name="numero_registro_iscrizione">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="clienteDataIscrizione" class="form-label">Data Iscrizione</label>
+                                <input type="date" class="form-control" id="clienteDataIscrizione" name="data_iscrizione">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="mb-3 text-uppercase text-muted">Idoneità</h6>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="clienteOcchiali" name="occhiali" value="1">
+                            <label class="form-check-label" for="clienteOcchiali">Uso occhiali</label>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="clienteTipoPratica" class="form-label">Tipo Pratica *</label>
-                        <select class="form-select" id="clienteTipoPratica" name="tipo_pratica" required>
-                            <option value="">-- Seleziona --</option>
-                            <option value="Patente entro 12 miglia">Patente entro 12 miglia</option>
-                            <option value="Patente oltre 12 miglia">Patente oltre 12 miglia</option>
-                            <option value="Patente D1">Patente D1</option>
-                            <option value="Rinnovo">Rinnovo</option>
-                            <option value="Duplicato">Duplicato</option>
-                            <option value="Altro">Altro</option>
-                        </select>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label for="clienteNumeroPatente" class="form-label">Numero Patente</label>
-                            <input type="text" class="form-control" id="clienteNumeroPatente" name="numero_patente">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="clienteDataConseguimento" class="form-label">Data Conseguimento</label>
-                            <input type="date" class="form-control" id="clienteDataConseguimento" name="data_conseguimento_patente">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="clienteDataScadenza" class="form-label">Data Scadenza</label>
-                            <input type="date" class="form-control" id="clienteDataScadenza" name="data_scadenza_patente">
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="clienteNote" class="form-label">Note</label>
+                        <h6 class="mb-3 text-uppercase text-muted">Note</h6>
                         <textarea class="form-control" id="clienteNote" name="note" rows="3"></textarea>
                     </div>
                 </div>
@@ -270,10 +318,14 @@ $clienti = getClienti($search);
                 <div class="modal-body">
                     <p>Sei sicuro di voler eliminare questo cliente?</p>
                     <p class="text-danger"><small>Attenzione: verranno eliminate anche tutte le pratiche e i pagamenti associati.</small></p>
+                    <div class="mb-3">
+                        <label for="deleteClienteConfirm" class="form-label">Digita ELIMINA per confermare</label>
+                        <input type="text" class="form-control" id="deleteClienteConfirm" placeholder="ELIMINA" autocomplete="off">
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                    <button type="submit" class="btn btn-danger">Elimina</button>
+                    <button type="submit" class="btn btn-danger" id="deleteClienteSubmit" disabled>Elimina</button>
                 </div>
             </form>
         </div>
@@ -286,6 +338,7 @@ function editCliente(cliente) {
     document.getElementById('modalClienteTitle').textContent = 'Modifica Cliente';
     document.getElementById('clienteAction').value = 'update';
     document.getElementById('clienteId').value = cliente.id;
+    document.getElementById('clienteIdAlt').value = cliente.id;
     document.getElementById('clienteNome').value = cliente.nome;
     document.getElementById('clienteCognome').value = cliente.cognome;
     document.getElementById('clienteTelefono').value = cliente.telefono || '';
@@ -295,6 +348,11 @@ function editCliente(cliente) {
     document.getElementById('clienteNumeroPatente').value = cliente.numero_patente || '';
     document.getElementById('clienteDataConseguimento').value = cliente.data_conseguimento_patente || '';
     document.getElementById('clienteDataScadenza').value = cliente.data_scadenza_patente || '';
+    document.getElementById('clienteIndirizzo').value = cliente.indirizzo || '';
+    document.getElementById('clienteCitta').value = cliente.citta || '';
+    document.getElementById('clienteNumeroRegistro').value = cliente.numero_registro_iscrizione || '';
+    document.getElementById('clienteDataIscrizione').value = cliente.data_iscrizione || '';
+    document.getElementById('clienteOcchiali').checked = cliente.occhiali == 1;
     document.getElementById('clienteNote').value = cliente.note || '';
     
     new bootstrap.Modal(document.getElementById('modalCliente')).show();
@@ -303,6 +361,8 @@ function editCliente(cliente) {
 // Funzione per eliminare cliente
 function deleteCliente(id) {
     document.getElementById('deleteClienteId').value = id;
+    document.getElementById('deleteClienteConfirm').value = '';
+    document.getElementById('deleteClienteSubmit').disabled = true;
     new bootstrap.Modal(document.getElementById('modalDeleteCliente')).show();
 }
 
@@ -311,6 +371,13 @@ document.getElementById('modalCliente').addEventListener('hidden.bs.modal', func
     document.getElementById('formCliente').reset();
     document.getElementById('modalClienteTitle').textContent = 'Nuovo Cliente';
     document.getElementById('clienteAction').value = 'create';
+    document.getElementById('clienteId').value = '';
+    document.getElementById('clienteIdAlt').value = '';
+    document.getElementById('clienteOcchiali').checked = false;
+});
+
+document.getElementById('deleteClienteConfirm').addEventListener('input', function() {
+    document.getElementById('deleteClienteSubmit').disabled = this.value.trim().toUpperCase() !== 'ELIMINA';
 });
 </script>
 
