@@ -92,7 +92,7 @@ $pratiche_attive = getPratiche();
 
                     <div class="mb-3">
                         <label class="form-label">Cliente *</label>
-                        <select name="cliente_id" class="form-select" required>
+                        <select name="cliente_id" class="form-select" required id="selectCliente">
                             <option value="">-- Seleziona Cliente --</option>
                             <?php foreach($clienti as $cli): ?>
                                 <option value="<?php echo $cli['id']; ?>">
@@ -140,10 +140,10 @@ $pratiche_attive = getPratiche();
 
                     <div class="mb-3">
                         <label class="form-label">Pratica Collegata (opzionale)</label>
-                        <select name="pratica_id" class="form-select">
+                        <select name="pratica_id" class="form-select" id="selectPratica">
                             <option value="">-- Nessuna --</option>
                             <?php foreach($pratiche_attive as $prat): ?>
-                                <option value="<?php echo $prat['id']; ?>">
+                                <option value="<?php echo $prat['id']; ?>" data-cliente-id="<?php echo $prat['cliente_id']; ?>">
                                     #<?php echo $prat['id']; ?> - <?php echo htmlspecialchars($prat['cliente_nome']); ?>
                                 </option>
                             <?php endforeach; ?>
@@ -164,5 +164,36 @@ $pratiche_attive = getPratiche();
         </div>
     </div>
 </div>
+
+<script nonce="<?php echo $cspNonce; ?>">
+const selectCliente = document.getElementById('selectCliente');
+const selectPratica = document.getElementById('selectPratica');
+
+function filterPraticheByCliente() {
+    if (!selectCliente || !selectPratica) return;
+    const clienteId = selectCliente.value;
+    Array.from(selectPratica.options).forEach(option => {
+        if (!option.value) {
+            option.hidden = false;
+            option.disabled = false;
+            return;
+        }
+        const optionCliente = option.getAttribute('data-cliente-id');
+        const visible = !clienteId || optionCliente === clienteId;
+        option.hidden = !visible;
+        option.disabled = !visible;
+    });
+
+    const selectedOption = selectPratica.options[selectPratica.selectedIndex];
+    if (selectedOption && (selectedOption.disabled || selectedOption.hidden)) {
+        selectPratica.value = '';
+    }
+}
+
+if (selectCliente) {
+    selectCliente.addEventListener('change', filterPraticheByCliente);
+    filterPraticheByCliente();
+}
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
