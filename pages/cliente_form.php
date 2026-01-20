@@ -310,7 +310,7 @@ async function runAddressSearch() {
     const searchQuery = query.replace(/\s+\d+[a-zA-Z]?$/u, '').trim();
     const effectiveQuery = searchQuery !== '' ? searchQuery : query;
 
-    const citta = cittaInput && cittaInput.value.trim() ? `, ${cittaInput.value.trim()}` : '';
+    const citta = cittaInput && cittaInput.value.trim() ? `, ${cittaInput.value.trim()}` : ', Italia';
     const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=it&q=${encodeURIComponent(effectiveQuery + citta)}`;
 
     try {
