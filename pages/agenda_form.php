@@ -22,8 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = 'Sessione scaduta. Riprova.';
         $message_type = 'danger';
     } elseif (isset($_POST['action']) && $_POST['action'] === 'create') {
-        if (empty($_POST['cliente_id']) || empty($_POST['data_guida']) || empty($_POST['orario_inizio']) || empty($_POST['orario_fine']) || empty($_POST['istruttore'])) {
-            $message = 'Cliente, data, orari e istruttore sono obbligatori.';
+        if (empty($_POST['cliente_id']) || empty($_POST['data_guida']) || empty($_POST['orario_inizio']) || empty($_POST['orario_fine']) || empty($_POST['istruttore']) || empty($_POST['tipo_lezione'])) {
+            $message = 'Cliente, data, orari, istruttore e tipo lezione sono obbligatori.';
             $message_type = 'danger';
         } else {
             $dataGuida = new DateTime($_POST['data_guida']);
@@ -129,8 +129,8 @@ $pratiche_attive = getPratiche();
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Tipo Lezione</label>
-                        <select name="tipo_lezione" class="form-select">
+                        <label class="form-label">Tipo Lezione *</label>
+                        <select name="tipo_lezione" class="form-select" required>
                             <option value="">-- Seleziona --</option>
                             <?php foreach($agendaLessonTypes as $type): ?>
                                 <option value="<?php echo htmlspecialchars($type); ?>"><?php echo htmlspecialchars($type); ?></option>
