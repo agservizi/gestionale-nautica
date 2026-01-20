@@ -68,6 +68,7 @@ $themePresets = [
         'color_gray' => '#829ab1',
     ],
 ];
+$selectedPreset = getSetting('theme_preset', 'Nautika');
 $agendaInstructors = getSettingsList('agenda_instructors', $defaultInstructors);
 $agendaLessonTypes = getSettingsList('agenda_lesson_types', $defaultLessonTypes);
 $expenseCategories = getSettingsList('expense_categories', $defaultExpenseCategories);
@@ -87,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $instructorsRaw = $_POST['agenda_instructors'] ?? '';
         $lessonTypesRaw = $_POST['agenda_lesson_types'] ?? '';
         $expenseCategoriesRaw = $_POST['expense_categories'] ?? '';
-        $themeInput = $_POST['theme'] ?? [];
+        $themePreset = $_POST['theme_preset'] ?? $selectedPreset;
 
         $isTime = function($value) {
             return is_string($value) && preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $value);
@@ -97,12 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $parsedLessonTypes = parseSettingsList($lessonTypesRaw, $defaultLessonTypes);
         $parsedExpenseCategories = parseSettingsList($expenseCategoriesRaw, $defaultExpenseCategories);
 
-        $hexPattern = '/^#[0-9A-Fa-f]{6}$/';
-        $themeValidated = [];
-        foreach ($defaultTheme as $key => $value) {
-            $candidate = $themeInput[$key] ?? $value;
-            $themeValidated[$key] = preg_match($hexPattern, $candidate) ? $candidate : $value;
-        }
+        $themeValidated = $themePresets[$themePreset] ?? $defaultTheme;
 
         if (!$isTime($agendaStart) || !$isTime($agendaEnd) || $agendaEnd <= $agendaStart) {
             $message = 'Orari agenda non validi. Verifica inizio e fine.';
@@ -126,6 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             setSettingsList('agenda_instructors', $parsedInstructors);
             setSettingsList('agenda_lesson_types', $parsedLessonTypes);
             setSettingsList('expense_categories', $parsedExpenseCategories);
+            setSetting('theme_preset', $themePreset);
             foreach ($themeValidated as $key => $value) {
                 setSetting('theme_' . $key, $value);
             }
@@ -146,6 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($defaultTheme as $key => $value) {
             $themeSettings[$key] = getSetting('theme_' . $key, $value);
         }
+        $selectedPreset = getSetting('theme_preset', 'Nautika');
     }
 }
 ?>
@@ -170,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
 
-        <form method="POST">
+        <form method="POST" id="settingsForm">
             <?php echo csrf_input(); ?>
 
             <div class="row g-4">
@@ -257,22 +255,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="card-body">
                             <div class="mb-3">
                                 <label class="form-label">Preset</label>
-                                <div class="d-flex flex-wrap gap-2">
+                                <div class="row g-3">
                                     <?php foreach($themePresets as $name => $preset): ?>
-                                        <button type="button" class="btn btn-outline-primary btn-sm" data-theme-preset='<?php echo json_encode($preset, JSON_UNESCAPED_UNICODE); ?>'>
-                                            <?php echo htmlspecialchars($name); ?>
-                                        </button>
+                                        <div class="col-md-3">
+                                            <div class="card h-100 preset-card">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <strong><?php echo htmlspecialchars($name); ?></strong>
+                                                        <input class="form-check-input" type="radio" name="theme_preset" value="<?php echo htmlspecialchars($name); ?>" <?php echo $selectedPreset === $name ? 'checked' : ''; ?>>
+                                                    </div>
+                                                    <div class="d-flex gap-1">
+                                                        <span class="preset-swatch" style="background: <?php echo htmlspecialchars($preset['color_primary']); ?>"></span>
+                                                        <span class="preset-swatch" style="background: <?php echo htmlspecialchars($preset['color_secondary']); ?>"></span>
+                                                        <span class="preset-swatch" style="background: <?php echo htmlspecialchars($preset['color_accent']); ?>"></span>
+                                                        <span class="preset-swatch" style="background: <?php echo htmlspecialchars($preset['color_success']); ?>"></span>
+                                                        <span class="preset-swatch" style="background: <?php echo htmlspecialchars($preset['color_warning']); ?>"></span>
+                                                        <span class="preset-swatch" style="background: <?php echo htmlspecialchars($preset['color_info']); ?>"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     <?php endforeach; ?>
                                 </div>
-                            </div>
-                            <div class="row g-3">
-                                <?php foreach($defaultTheme as $key => $defaultColor): ?>
-                                    <?php $value = $themeSettings[$key] ?? $defaultColor; ?>
-                                    <div class="col-md-3">
-                                        <label class="form-label text-capitalize"><?php echo str_replace('_', ' ', $key); ?></label>
-                                        <input type="color" class="form-control form-control-color w-100" name="theme[<?php echo $key; ?>]" value="<?php echo htmlspecialchars($value); ?>">
-                                    </div>
-                                <?php endforeach; ?>
                             </div>
                             <p class="text-muted mb-0 mt-2">Le modifiche sono globali per tutto il gestionale.</p>
                         </div>
@@ -290,16 +294,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <script nonce="<?php echo $cspNonce; ?>">
-document.querySelectorAll('[data-theme-preset]').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const preset = JSON.parse(btn.getAttribute('data-theme-preset'));
-        Object.keys(preset).forEach(key => {
-            const input = document.querySelector(`input[name="theme[${key}]"]`);
-            if (input) {
-                input.value = preset[key];
-            }
-        });
-    });
+const settingsForm = document.getElementById('settingsForm');
+let saveTimer;
+
+function scheduleSave() {
+    if (!settingsForm) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => settingsForm.submit(), 400);
+}
+
+document.querySelectorAll('input[name="theme_preset"]').forEach(input => {
+    input.addEventListener('change', scheduleSave);
 });
 </script>
 
