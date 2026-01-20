@@ -248,24 +248,35 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
 const cittaInput = document.getElementById('clienteCitta');
 const cittaDatalist = document.getElementById('cittaSuggerimenti');
 
-let comuniIstat = [];
+let debounceCity;
+function debounceCitySearch() {
+    clearTimeout(debounceCity);
+    debounceCity = setTimeout(runCitySearch, 250);
+}
 
-async function loadComuniIstat() {
+async function runCitySearch() {
+    if (!cittaInput || !cittaDatalist) return;
+    const query = cittaInput.value.trim();
+    if (query.length < 2) {
+        cittaDatalist.innerHTML = '';
+        return;
+    }
     try {
-        const res = await fetch('/pages/api/istat_comuni.php', { headers: { 'Accept': 'application/json' } });
+        const res = await fetch(`/pages/api/istat_comuni.php?q=${encodeURIComponent(query)}&limit=20`, {
+            headers: { 'Accept': 'application/json' }
+        });
         const data = await res.json();
         if (Array.isArray(data.comuni)) {
-            comuniIstat = data.comuni;
-            if (cittaDatalist) {
-                cittaDatalist.innerHTML = comuniIstat.map(c => `<option value="${c}"></option>`).join('');
-            }
+            cittaDatalist.innerHTML = data.comuni.map(c => `<option value="${c}"></option>`).join('');
         }
     } catch (e) {
-        comuniIstat = [];
+        cittaDatalist.innerHTML = '';
     }
 }
 
-loadComuniIstat();
+if (cittaInput) {
+    cittaInput.addEventListener('input', debounceCitySearch);
+}
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
