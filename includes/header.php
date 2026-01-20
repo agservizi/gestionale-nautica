@@ -24,6 +24,26 @@ if (function_exists('runScheduledJobs')) {
 
 $current_page = basename($_SERVER['PHP_SELF'], '.php');
 $notifications = function_exists('getNotificationSummary') ? getNotificationSummary() : null;
+
+$defaultTheme = [
+    'color_primary' => '#1e3a5f',
+    'color_secondary' => '#4a90d9',
+    'color_accent' => '#f4c430',
+    'color_success' => '#28a745',
+    'color_danger' => '#dc3545',
+    'color_warning' => '#ffc107',
+    'color_info' => '#17a2b8',
+    'color_light' => '#f8f9fa',
+    'color_dark' => '#343a40',
+    'color_white' => '#ffffff',
+    'color_gray' => '#6c757d',
+];
+
+$theme = [];
+foreach ($defaultTheme as $key => $value) {
+    $stored = getSetting('theme_' . $key, $value);
+    $theme[$key] = $stored ?: $value;
+}
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -41,6 +61,21 @@ $notifications = function_exists('getNotificationSummary') ? getNotificationSumm
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/assets/css/custom.css">
     <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+    <style>
+        :root {
+            --color-primary: <?php echo htmlspecialchars($theme['color_primary']); ?>;
+            --color-secondary: <?php echo htmlspecialchars($theme['color_secondary']); ?>;
+            --color-accent: <?php echo htmlspecialchars($theme['color_accent']); ?>;
+            --color-success: <?php echo htmlspecialchars($theme['color_success']); ?>;
+            --color-danger: <?php echo htmlspecialchars($theme['color_danger']); ?>;
+            --color-warning: <?php echo htmlspecialchars($theme['color_warning']); ?>;
+            --color-info: <?php echo htmlspecialchars($theme['color_info']); ?>;
+            --color-light: <?php echo htmlspecialchars($theme['color_light']); ?>;
+            --color-dark: <?php echo htmlspecialchars($theme['color_dark']); ?>;
+            --color-white: <?php echo htmlspecialchars($theme['color_white']); ?>;
+            --color-gray: <?php echo htmlspecialchars($theme['color_gray']); ?>;
+        }
+    </style>
     <script>
         (function() {
             try {

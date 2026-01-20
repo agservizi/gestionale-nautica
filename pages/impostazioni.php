@@ -13,9 +13,26 @@ $appYearStart = getAppYearStart();
 $defaultInstructors = ['Vincenzo Scibile', 'Vincenzo Lomiento', 'Luigi Visalli'];
 $defaultLessonTypes = ['Guida pratica', 'Esame', 'Altro'];
 $defaultExpenseCategories = ['Vincenzo', 'Luigi', 'Affitto barca', 'Benzina', 'Altro'];
+$defaultTheme = [
+    'color_primary' => '#1e3a5f',
+    'color_secondary' => '#4a90d9',
+    'color_accent' => '#f4c430',
+    'color_success' => '#28a745',
+    'color_danger' => '#dc3545',
+    'color_warning' => '#ffc107',
+    'color_info' => '#17a2b8',
+    'color_light' => '#f8f9fa',
+    'color_dark' => '#343a40',
+    'color_white' => '#ffffff',
+    'color_gray' => '#6c757d',
+];
 $agendaInstructors = getSettingsList('agenda_instructors', $defaultInstructors);
 $agendaLessonTypes = getSettingsList('agenda_lesson_types', $defaultLessonTypes);
 $expenseCategories = getSettingsList('expense_categories', $defaultExpenseCategories);
+$themeSettings = [];
+foreach ($defaultTheme as $key => $value) {
+    $themeSettings[$key] = getSetting('theme_' . $key, $value);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!csrf_validate($_POST['csrf_token'] ?? '')) {
@@ -28,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $instructorsRaw = $_POST['agenda_instructors'] ?? '';
         $lessonTypesRaw = $_POST['agenda_lesson_types'] ?? '';
         $expenseCategoriesRaw = $_POST['expense_categories'] ?? '';
+        $themeInput = $_POST['theme'] ?? [];
 
         $isTime = function($value) {
             return is_string($value) && preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $value);
@@ -36,6 +54,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $parsedInstructors = parseSettingsList($instructorsRaw, $defaultInstructors);
         $parsedLessonTypes = parseSettingsList($lessonTypesRaw, $defaultLessonTypes);
         $parsedExpenseCategories = parseSettingsList($expenseCategoriesRaw, $defaultExpenseCategories);
+
+        $hexPattern = '/^#[0-9A-Fa-f]{6}$/';
+        $themeValidated = [];
+        foreach ($defaultTheme as $key => $value) {
+            $candidate = $themeInput[$key] ?? $value;
+            $themeValidated[$key] = preg_match($hexPattern, $candidate) ? $candidate : $value;
+        }
 
         if (!$isTime($agendaStart) || !$isTime($agendaEnd) || $agendaEnd <= $agendaStart) {
             $message = 'Orari agenda non validi. Verifica inizio e fine.';
@@ -59,6 +84,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             setSettingsList('agenda_instructors', $parsedInstructors);
             setSettingsList('agenda_lesson_types', $parsedLessonTypes);
             setSettingsList('expense_categories', $parsedExpenseCategories);
+            foreach ($themeValidated as $key => $value) {
+                setSetting('theme_' . $key, $value);
+            }
 
             if (function_exists('logAudit')) {
                 logAudit('update', 'settings', null, 'general');
@@ -73,6 +101,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $agendaInstructors = getSettingsList('agenda_instructors', $defaultInstructors);
         $agendaLessonTypes = getSettingsList('agenda_lesson_types', $defaultLessonTypes);
         $expenseCategories = getSettingsList('expense_categories', $defaultExpenseCategories);
+        foreach ($defaultTheme as $key => $value) {
+            $themeSettings[$key] = getSetting('theme_' . $key, $value);
+        }
     }
 }
 ?>
@@ -172,6 +203,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <label class="form-label">Categorie (una per riga)</label>
                             <textarea name="expense_categories" class="form-control" rows="5" required><?php echo htmlspecialchars(implode("\n", $expenseCategories)); ?></textarea>
                             <p class="text-muted mb-0 mt-2">Usate nei filtri e nella creazione spese.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0"><i class="bi bi-palette"></i> Palette Colori</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <?php foreach($defaultTheme as $key => $defaultColor): ?>
+                                    <?php $value = $themeSettings[$key] ?? $defaultColor; ?>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-capitalize"><?php echo str_replace('_', ' ', $key); ?></label>
+                                        <input type="color" class="form-control form-control-color w-100" name="theme[<?php echo $key; ?>]" value="<?php echo htmlspecialchars($value); ?>">
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <p class="text-muted mb-0 mt-2">Le modifiche sono globali per tutto il gestionale.</p>
                         </div>
                     </div>
                 </div>
