@@ -33,7 +33,10 @@ function dashboardPageLink($param, $page) {
             <div class="col-12">
                 <h1 class="h3">Dashboard</h1>
                 <?php if ($currentUser): ?>
-                    <p class="text-muted">Benvenuto, <?php echo htmlspecialchars($currentUser['username']); ?>.</p>
+                    <div class="d-flex align-items-center gap-2 fw-semibold text-primary">
+                        <i class="bi bi-hand-thumbs-up"></i>
+                        <span>Benvenuto, <?php echo htmlspecialchars($currentUser['username']); ?>.</span>
+                    </div>
                 <?php endif; ?>
                 <p class="text-muted">Anno: <?php echo $anno_corrente; ?></p>
             </div>
