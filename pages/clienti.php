@@ -55,6 +55,20 @@ $clienti = getClienti($search);
                 </a>
             </div>
         </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-9">
+                        <label class="form-label">Ricerca</label>
+                        <input type="search" name="search" class="form-control" placeholder="Nome, cognome, email o codice fiscale" value="<?php echo htmlspecialchars($search); ?>">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">Cerca</button>
+                    </div>
+                </form>
+            </div>
+        </div>
         
         <!-- Tabella Clienti -->
         <div class="card">
@@ -68,13 +82,14 @@ $clienti = getClienti($search);
                                 <th>Nome</th>
                                 <th>Telefono</th>
                                 <th>Email</th>
+                                <th>Codice Fiscale</th>
                                 <th class="text-end">Azioni</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if(empty($clienti)): ?>
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted">Nessun cliente trovato</td>
+                                    <td colspan="7" class="text-center text-muted">Nessun cliente trovato</td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach($clienti as $cliente): ?>
@@ -84,6 +99,7 @@ $clienti = getClienti($search);
                                         <td><?php echo htmlspecialchars($cliente['nome']); ?></td>
                                         <td><?php echo htmlspecialchars($cliente['telefono'] ?? '-'); ?></td>
                                         <td><?php echo htmlspecialchars($cliente['email'] ?? '-'); ?></td>
+                                        <td><?php echo htmlspecialchars($cliente['codice_fiscale'] ?? '-'); ?></td>
                                         <td class="text-end">
                                             <div class="d-inline-flex gap-1">
                                                 <a href="cliente_dettaglio.php?id=<?php echo $cliente['id']; ?>" 

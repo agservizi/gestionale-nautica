@@ -80,9 +80,9 @@ function getClienti($search = '', $limit = null, $offset = 0) {
     $params = [];
     
     if(!empty($search)) {
-        $sql .= " AND (nome LIKE ? OR cognome LIKE ? OR telefono LIKE ? OR email LIKE ?)";
+        $sql .= " AND (nome LIKE ? OR cognome LIKE ? OR telefono LIKE ? OR email LIKE ? OR codice_fiscale LIKE ?)";
         $searchParam = "%$search%";
-        $params = [$searchParam, $searchParam, $searchParam, $searchParam];
+        $params = [$searchParam, $searchParam, $searchParam, $searchParam, $searchParam];
     }
     
     $sql .= " ORDER BY cognome, nome";
