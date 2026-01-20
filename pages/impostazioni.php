@@ -296,15 +296,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <script nonce="<?php echo $cspNonce; ?>">
 const settingsForm = document.getElementById('settingsForm');
 let saveTimer;
+const presetData = {};
+document.querySelectorAll('input[name="theme_preset"]').forEach(input => {
+    const card = input.closest('.preset-card');
+    if (!card) return;
+    const swatches = card.querySelectorAll('.preset-swatch');
+    const key = input.value;
+    if (!presetData[key]) presetData[key] = {};
+    const preset = presetData[key];
+    if (swatches[0]) preset.color_primary = swatches[0].style.background;
+    if (swatches[1]) preset.color_secondary = swatches[1].style.background;
+    if (swatches[2]) preset.color_accent = swatches[2].style.background;
+    if (swatches[3]) preset.color_success = swatches[3].style.background;
+    if (swatches[4]) preset.color_warning = swatches[4].style.background;
+    if (swatches[5]) preset.color_info = swatches[5].style.background;
+});
 
 function scheduleSave() {
     if (!settingsForm) return;
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => settingsForm.submit(), 400);
+    saveTimer = setTimeout(async () => {
+        const formData = new FormData(settingsForm);
+        try {
+            await fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+        } catch (e) {}
+    }, 200);
 }
 
 document.querySelectorAll('input[name="theme_preset"]').forEach(input => {
     input.addEventListener('change', scheduleSave);
+    input.addEventListener('change', () => {
+        const presetName = input.value;
+        const preset = presetData[presetName];
+        if (!preset) return;
+        const root = document.documentElement;
+        if (preset.color_primary) root.style.setProperty('--color-primary', preset.color_primary);
+        if (preset.color_secondary) root.style.setProperty('--color-secondary', preset.color_secondary);
+        if (preset.color_accent) root.style.setProperty('--color-accent', preset.color_accent);
+        if (preset.color_success) root.style.setProperty('--color-success', preset.color_success);
+        if (preset.color_warning) root.style.setProperty('--color-warning', preset.color_warning);
+        if (preset.color_info) root.style.setProperty('--color-info', preset.color_info);
+    });
 });
 </script>
 
