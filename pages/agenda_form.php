@@ -179,7 +179,7 @@ function filterPraticheByCliente() {
             return;
         }
         const optionCliente = option.getAttribute('data-cliente-id');
-        const visible = !clienteId || optionCliente === clienteId;
+        const visible = clienteId && optionCliente === clienteId;
         option.hidden = !visible;
         option.disabled = !visible;
     });
