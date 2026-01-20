@@ -26,6 +26,48 @@ $defaultTheme = [
     'color_white' => '#ffffff',
     'color_gray' => '#6c757d',
 ];
+$themePresets = [
+    'Nautika' => $defaultTheme,
+    'Ocean' => [
+        'color_primary' => '#0b3d91',
+        'color_secondary' => '#2f7dd1',
+        'color_accent' => '#17bebb',
+        'color_success' => '#2ecc71',
+        'color_danger' => '#e74c3c',
+        'color_warning' => '#f39c12',
+        'color_info' => '#1abc9c',
+        'color_light' => '#f3f7fb',
+        'color_dark' => '#1f2d3d',
+        'color_white' => '#ffffff',
+        'color_gray' => '#7f8c8d',
+    ],
+    'Sunset' => [
+        'color_primary' => '#5d2e8c',
+        'color_secondary' => '#ff7a59',
+        'color_accent' => '#ffd166',
+        'color_success' => '#2dce89',
+        'color_danger' => '#f5365c',
+        'color_warning' => '#fb6340',
+        'color_info' => '#11cdef',
+        'color_light' => '#f8f5ff',
+        'color_dark' => '#2a1b3d',
+        'color_white' => '#ffffff',
+        'color_gray' => '#6b6b83',
+    ],
+    'Slate' => [
+        'color_primary' => '#243b53',
+        'color_secondary' => '#486581',
+        'color_accent' => '#f0b429',
+        'color_success' => '#27ab83',
+        'color_danger' => '#d64545',
+        'color_warning' => '#f7d070',
+        'color_info' => '#2680c2',
+        'color_light' => '#f5f7fa',
+        'color_dark' => '#102a43',
+        'color_white' => '#ffffff',
+        'color_gray' => '#829ab1',
+    ],
+];
 $agendaInstructors = getSettingsList('agenda_instructors', $defaultInstructors);
 $agendaLessonTypes = getSettingsList('agenda_lesson_types', $defaultLessonTypes);
 $expenseCategories = getSettingsList('expense_categories', $defaultExpenseCategories);
@@ -213,6 +255,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <h5 class="mb-0"><i class="bi bi-palette"></i> Palette Colori</h5>
                         </div>
                         <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Preset</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <?php foreach($themePresets as $name => $preset): ?>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" data-theme-preset='<?php echo json_encode($preset, JSON_UNESCAPED_UNICODE); ?>'>
+                                            <?php echo htmlspecialchars($name); ?>
+                                        </button>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
                             <div class="row g-3">
                                 <?php foreach($defaultTheme as $key => $defaultColor): ?>
                                     <?php $value = $themeSettings[$key] ?? $defaultColor; ?>
@@ -236,5 +288,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
     </div>
 </div>
+
+<script nonce="<?php echo $cspNonce; ?>">
+document.querySelectorAll('[data-theme-preset]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const preset = JSON.parse(btn.getAttribute('data-theme-preset'));
+        Object.keys(preset).forEach(key => {
+            const input = document.querySelector(`input[name="theme[${key}]"]`);
+            if (input) {
+                input.value = preset[key];
+            }
+        });
+    });
+});
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
