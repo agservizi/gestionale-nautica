@@ -95,7 +95,7 @@ SQL,
 CREATE TABLE IF NOT EXISTS spese (
     id INT AUTO_INCREMENT PRIMARY KEY,
     data_spesa DATE NOT NULL,
-    categoria ENUM('Vincenzo','Luigi','Affitto barca','Benzina','Altro') NOT NULL,
+    categoria VARCHAR(100) NOT NULL,
     categoria_altro VARCHAR(100),
     importo DECIMAL(10,2) NOT NULL,
     descrizione TEXT,
@@ -171,6 +171,13 @@ CREATE TABLE IF NOT EXISTS scheduled_jobs (
     last_status ENUM('ok','error') DEFAULT NULL,
     last_message TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+SQL,
+    <<<SQL
+CREATE TABLE IF NOT EXISTS app_settings (
+    setting_key VARCHAR(100) PRIMARY KEY,
+    setting_value TEXT NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SQL,

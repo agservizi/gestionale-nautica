@@ -24,7 +24,7 @@ foreach($pagamenti as $pag) {
 }
 $totale_generale = $totale_contanti + $totale_pos;
 
-$anni = range(APP_YEAR_START, date('Y') + 1);
+$anni = range(getAppYearStart(), date('Y') + 1);
 ?>
 
 <?php include __DIR__ . '/../includes/sidebar.php'; ?>

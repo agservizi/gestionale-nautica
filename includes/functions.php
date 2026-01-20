@@ -1192,3 +1192,95 @@ function csrf_validate($token) {
     }
     return !empty($token) && isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
+
+// ============================================
+// IMPOSTAZIONI APPLICAZIONE
+// ============================================
+
+function getSetting($key, $default = null) {
+    try {
+        $db = getDB();
+        $stmt = $db->prepare("SELECT setting_value FROM app_settings WHERE setting_key = ? LIMIT 1");
+        $stmt->execute([$key]);
+        $row = $stmt->fetch();
+        return $row ? $row['setting_value'] : $default;
+    } catch (Throwable $e) {
+        return $default;
+    }
+}
+
+function setSetting($key, $value) {
+    try {
+        $db = getDB();
+        $stmt = $db->prepare("INSERT INTO app_settings (setting_key, setting_value) VALUES (?, ?)\n            ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = CURRENT_TIMESTAMP");
+        $stmt->execute([$key, $value]);
+    } catch (Throwable $e) {
+        return false;
+    }
+    return true;
+}
+
+function getAppYearStart() {
+    $year = (int)getSetting('app_year_start', APP_YEAR_START);
+    $min = 2000;
+    $max = (int)date('Y') + 1;
+    if ($year < $min || $year > $max) {
+        return APP_YEAR_START;
+    }
+    return $year;
+}
+
+function getAgendaTimeWindow() {
+    $defaultStart = '08:00';
+    $defaultEnd = '18:00';
+    $start = getSetting('agenda_start_time', $defaultStart);
+    $end = getSetting('agenda_end_time', $defaultEnd);
+
+    $isTime = function($value) {
+        return is_string($value) && preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $value);
+    };
+
+    if (!$isTime($start)) {
+        $start = $defaultStart;
+    }
+    if (!$isTime($end)) {
+        $end = $defaultEnd;
+    }
+    if ($end <= $start) {
+        $start = $defaultStart;
+        $end = $defaultEnd;
+    }
+
+    return ['start' => $start, 'end' => $end];
+}
+
+function parseSettingsList($raw, array $defaults = []) {
+    if ($raw === null) {
+        return $defaults;
+    }
+    $lines = preg_split('/\r\n|\r|\n/', (string)$raw);
+    $clean = [];
+    foreach ($lines as $line) {
+        $value = trim($line);
+        if ($value === '') {
+            continue;
+        }
+        if (!in_array($value, $clean, true)) {
+            $clean[] = $value;
+        }
+    }
+    return !empty($clean) ? $clean : $defaults;
+}
+
+function getSettingsList($key, array $defaults = []) {
+    return parseSettingsList(getSetting($key, null), $defaults);
+}
+
+function setSettingsList($key, array $values) {
+    $clean = parseSettingsList(implode("\n", $values), []);
+    return setSetting($key, implode("\n", $clean));
+}
+
+function getExpenseCategories() {
+    return getSettingsList('expense_categories', ['Vincenzo', 'Luigi', 'Affitto barca', 'Benzina', 'Altro']);
+}

@@ -71,6 +71,12 @@
                             <span class="link-text">Utenti</span>
                         </a>
                     </li>
+                    <li class="<?php echo $current_page == 'impostazioni' ? 'active' : ''; ?>">
+                        <a href="/pages/impostazioni.php" class="sidebar-link" data-tooltip="Impostazioni">
+                            <i class="bi bi-gear"></i>
+                            <span class="link-text">Impostazioni</span>
+                        </a>
+                    </li>
                     <li class="<?php echo $current_page == 'audit' ? 'active' : ''; ?>">
                         <a href="/pages/audit.php" class="sidebar-link" data-tooltip="Audit Log">
                             <i class="bi bi-shield-check"></i>

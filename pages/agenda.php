@@ -8,6 +8,16 @@ require_once __DIR__ . '/../includes/header.php';
 $message = '';
 $message_type = '';
 
+$agendaWindow = getAgendaTimeWindow();
+$agendaStart = $agendaWindow['start'];
+$agendaEnd = $agendaWindow['end'];
+$agendaDefaultEnd = date('H:i', strtotime($agendaStart . ' +2 hours'));
+if ($agendaDefaultEnd > $agendaEnd) {
+    $agendaDefaultEnd = $agendaEnd;
+}
+$agendaInstructors = getSettingsList('agenda_instructors', ['Vincenzo Scibile', 'Vincenzo Lomiento', 'Luigi Visalli']);
+$agendaLessonTypes = getSettingsList('agenda_lesson_types', ['Guida pratica', 'Esame', 'Altro']);
+
 if($_SERVER['REQUEST_METHOD'] === 'POST') {
     if(!csrf_validate($_POST['csrf_token'] ?? '')) {
         $message = 'Sessione scaduta. Riprova.';
@@ -34,8 +44,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $message_type = 'danger';
                     break;
                 }
-                if ($inizio < '08:00' || $fine > '18:00') {
-                    $message = 'Le guide sono consentite solo tra le 08:00 e le 18:00.';
+                if ($inizio < $agendaStart || $fine > $agendaEnd) {
+                    $message = 'Le guide sono consentite solo tra le ' . $agendaStart . ' e le ' . $agendaEnd . '.';
                     $message_type = 'danger';
                     break;
                 }
@@ -59,6 +69,7 @@ $data_corrente = $_GET['data'] ?? date('Y-m-d');
 $data_obj = new DateTime($data_corrente);
 $mese_corrente = (int)($_GET['mese'] ?? date('m'));
 $anno_corrente = (int)($_GET['anno'] ?? date('Y'));
+$appYearStart = getAppYearStart();
 
 // Ottieni guide del giorno
 $guide_giorno = getAgendaGuide(['data' => $data_corrente]);
@@ -262,7 +273,7 @@ $startWeekday = (int)$firstDay->format('N'); // 1 (Mon) - 7 (Sun)
                                 <?php endfor; ?>
                             </select>
                             <select name="anno" class="form-select">
-                                <?php for($y=APP_YEAR_START;$y<=date('Y')+1;$y++): ?>
+                                <?php for($y=$appYearStart;$y<=date('Y')+1;$y++): ?>
                                     <option value="<?php echo $y; ?>" <?php echo $anno_corrente === $y ? 'selected' : ''; ?>><?php echo $y; ?></option>
                                 <?php endfor; ?>
                             </select>
@@ -314,7 +325,7 @@ $startWeekday = (int)$firstDay->format('N'); // 1 (Mon) - 7 (Sun)
                         <form method="GET" class="d-flex gap-2">
                             <input type="hidden" name="data" value="<?php echo $data_corrente; ?>">
                             <select name="anno" class="form-select">
-                                <?php for($y=APP_YEAR_START;$y<=date('Y')+1;$y++): ?>
+                                <?php for($y=$appYearStart;$y<=date('Y')+1;$y++): ?>
                                     <option value="<?php echo $y; ?>" <?php echo $anno_corrente === $y ? 'selected' : ''; ?>><?php echo $y; ?></option>
                                 <?php endfor; ?>
                             </select>
@@ -383,11 +394,11 @@ $startWeekday = (int)$firstDay->format('N'); // 1 (Mon) - 7 (Sun)
                     <div class="row mb-3">
                         <div class="col-6">
                             <label class="form-label">Orario Inizio *</label>
-                            <input type="time" name="orario_inizio" class="form-control" value="08:00" min="08:00" max="18:00" step="900" required>
+                            <input type="time" name="orario_inizio" class="form-control" value="<?php echo $agendaStart; ?>" min="<?php echo $agendaStart; ?>" max="<?php echo $agendaEnd; ?>" step="900" required>
                         </div>
                         <div class="col-6">
                             <label class="form-label">Orario Fine *</label>
-                            <input type="time" name="orario_fine" class="form-control" value="10:00" min="08:00" max="18:00" step="900" required>
+                            <input type="time" name="orario_fine" class="form-control" value="<?php echo $agendaDefaultEnd; ?>" min="<?php echo $agendaStart; ?>" max="<?php echo $agendaEnd; ?>" step="900" required>
                         </div>
                     </div>
                     
@@ -395,9 +406,9 @@ $startWeekday = (int)$firstDay->format('N'); // 1 (Mon) - 7 (Sun)
                         <label class="form-label">Istruttore *</label>
                         <select name="istruttore" class="form-select" required>
                             <option value="">-- Seleziona --</option>
-                            <option value="Vincenzo Scibile">Vincenzo Scibile</option>
-                            <option value="Vincenzo Lomiento">Vincenzo Lomiento</option>
-                            <option value="Luigi Visalli">Luigi Visalli</option>
+                            <?php foreach($agendaInstructors as $instr): ?>
+                                <option value="<?php echo htmlspecialchars($instr); ?>"><?php echo htmlspecialchars($instr); ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
 
@@ -405,9 +416,9 @@ $startWeekday = (int)$firstDay->format('N'); // 1 (Mon) - 7 (Sun)
                         <label class="form-label">Tipo Lezione</label>
                         <select name="tipo_lezione" class="form-select">
                             <option value="">-- Seleziona --</option>
-                            <option value="Guida pratica">Guida pratica</option>
-                            <option value="Esame">Esame</option>
-                            <option value="Altro">Altro</option>
+                            <?php foreach($agendaLessonTypes as $type): ?>
+                                <option value="<?php echo htmlspecialchars($type); ?>"><?php echo htmlspecialchars($type); ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     

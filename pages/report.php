@@ -33,7 +33,7 @@ $stmt = $db->prepare($sql_pratiche_tipo);
 $stmt->execute($params);
 $pratiche_per_tipo = $stmt->fetchAll();
 
-$anni = range(APP_YEAR_START, date('Y') + 1);
+$anni = range(getAppYearStart(), date('Y') + 1);
 ?>
 
 <?php include __DIR__ . '/../includes/sidebar.php'; ?>

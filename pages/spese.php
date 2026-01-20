@@ -42,6 +42,7 @@ if(!empty($_GET['mese'])) $filters['mese'] = $_GET['mese'];
 if(!empty($_GET['categoria'])) $filters['categoria'] = $_GET['categoria'];
 
 $spese = getSpese($filters);
+$expenseCategories = getExpenseCategories();
 
 // Calcola totali per categoria
 $totali_categoria = [];
@@ -54,7 +55,7 @@ foreach($spese as $spesa) {
 }
 $totale_generale = array_sum($totali_categoria);
 
-$anni = range(APP_YEAR_START, date('Y') + 1);
+$anni = range(getAppYearStart(), date('Y') + 1);
 ?>
 
 <?php include __DIR__ . '/../includes/sidebar.php'; ?>
@@ -117,11 +118,11 @@ $anni = range(APP_YEAR_START, date('Y') + 1);
                         <label class="form-label">Categoria</label>
                         <select name="categoria" class="form-select">
                             <option value="">Tutte</option>
-                            <option value="Vincenzo" <?php echo ($_GET['categoria'] ?? '') == 'Vincenzo' ? 'selected' : ''; ?>>Vincenzo</option>
-                            <option value="Luigi" <?php echo ($_GET['categoria'] ?? '') == 'Luigi' ? 'selected' : ''; ?>>Luigi</option>
-                            <option value="Affitto barca" <?php echo ($_GET['categoria'] ?? '') == 'Affitto barca' ? 'selected' : ''; ?>>Affitto barca</option>
-                            <option value="Benzina" <?php echo ($_GET['categoria'] ?? '') == 'Benzina' ? 'selected' : ''; ?>>Benzina</option>
-                            <option value="Altro" <?php echo ($_GET['categoria'] ?? '') == 'Altro' ? 'selected' : ''; ?>>Altro</option>
+                            <?php foreach($expenseCategories as $cat): ?>
+                                <option value="<?php echo htmlspecialchars($cat); ?>" <?php echo ($_GET['categoria'] ?? '') == $cat ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($cat); ?>
+                                </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -235,11 +236,9 @@ $anni = range(APP_YEAR_START, date('Y') + 1);
                         <label class="form-label">Categoria *</label>
                         <select name="categoria" class="form-select" required id="categoriaSpesa">
                             <option value="">-- Seleziona --</option>
-                            <option value="Vincenzo">Vincenzo</option>
-                            <option value="Luigi">Luigi</option>
-                            <option value="Affitto barca">Affitto barca</option>
-                            <option value="Benzina">Benzina</option>
-                            <option value="Altro">Altro</option>
+                            <?php foreach($expenseCategories as $cat): ?>
+                                <option value="<?php echo htmlspecialchars($cat); ?>"><?php echo htmlspecialchars($cat); ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     

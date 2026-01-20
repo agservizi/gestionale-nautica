@@ -136,7 +136,7 @@ $clienti = getClienti();
 $altroSottocategorie = getAltroSottocategorie();
 
 // Anni disponibili
-$anni = range(APP_YEAR_START, date('Y') + 1);
+$anni = range(getAppYearStart(), date('Y') + 1);
 ?>
 
 <?php include __DIR__ . '/../includes/sidebar.php'; ?>
