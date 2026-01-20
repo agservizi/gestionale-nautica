@@ -45,8 +45,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (function_exists('logAudit')) {
                         logAudit('create', 'agenda', $id, $_POST['data_guida'] ?? null);
                     }
-                    $message = 'Guida registrata con successo!';
-                    $message_type = 'success';
+                    $redirectDate = $_POST['data_guida'] ?? date('Y-m-d');
+                    header('Location: /pages/agenda.php?data=' . urlencode($redirectDate));
+                    exit;
                 }
             }
         }
