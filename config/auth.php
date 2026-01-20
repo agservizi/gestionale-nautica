@@ -161,7 +161,11 @@ function currentUser() {
 }
 
 function isAdmin() {
-    return isLogged() && ($_SESSION['ruolo'] ?? '') === 'admin';
+    if (!isLogged()) {
+        return false;
+    }
+    $ruolo = $_SESSION['ruolo'] ?? '';
+    return in_array($ruolo, ['admin', 'sviluppatore'], true);
 }
 
 // Funzione per richiedere il login

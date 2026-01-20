@@ -11,6 +11,7 @@ $message_type = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $db = getDB();
     $action = $_POST['action'] ?? '';
+    $allowedRoles = ['operatore', 'admin', 'sviluppatore'];
 
     try {
         if (!csrf_validate($_POST['csrf_token'] ?? '')) {
@@ -22,6 +23,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $password = $_POST['password'] ?? '';
             $ruolo = $_POST['ruolo'] ?? 'operatore';
             $attivo = isset($_POST['attivo']) ? 1 : 0;
+
+            if (!in_array($ruolo, $allowedRoles, true)) {
+                $ruolo = 'operatore';
+            }
 
             if ($username === '' || $password === '') {
                 throw new Exception('Username e password sono obbligatori.');
@@ -40,6 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int)$_POST['id'];
             $ruolo = $_POST['ruolo'] ?? 'operatore';
             $attivo = isset($_POST['attivo']) ? 1 : 0;
+
+            if (!in_array($ruolo, $allowedRoles, true)) {
+                $ruolo = 'operatore';
+            }
 
             $stmt = $db->prepare("UPDATE utenti SET ruolo = ?, attivo = ? WHERE id = ?");
             $stmt->execute([$ruolo, $attivo, $id]);
@@ -130,7 +139,11 @@ $utenti = getDB()->query("SELECT id, username, ruolo, attivo, data_creazione FRO
                                     <tr>
                                         <td><?php echo $utente['id']; ?></td>
                                         <td><?php echo htmlspecialchars($utente['username']); ?></td>
-                                        <td><span class="badge bg-<?php echo $utente['ruolo'] === 'admin' ? 'primary' : 'secondary'; ?>"><?php echo $utente['ruolo']; ?></span></td>
+                                        <td>
+                                            <span class="badge bg-<?php echo $utente['ruolo'] === 'admin' ? 'primary' : ($utente['ruolo'] === 'sviluppatore' ? 'info' : 'secondary'); ?>">
+                                                <?php echo $utente['ruolo']; ?>
+                                            </span>
+                                        </td>
                                         <td>
                                             <?php if($utente['attivo']): ?>
                                                 <span class="badge bg-success">Attivo</span>
@@ -189,6 +202,7 @@ $utenti = getDB()->query("SELECT id, username, ruolo, attivo, data_creazione FRO
                         <select name="ruolo" class="form-select">
                             <option value="operatore">Operatore</option>
                             <option value="admin">Admin</option>
+                            <option value="sviluppatore">Sviluppatore</option>
                         </select>
                     </div>
                     <div class="form-check">
@@ -227,6 +241,7 @@ $utenti = getDB()->query("SELECT id, username, ruolo, attivo, data_creazione FRO
                         <select name="ruolo" id="editRole" class="form-select">
                             <option value="operatore">Operatore</option>
                             <option value="admin">Admin</option>
+                            <option value="sviluppatore">Sviluppatore</option>
                         </select>
                     </div>
                     <div class="form-check">

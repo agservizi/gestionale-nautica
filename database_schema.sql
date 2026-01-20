@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS utenti (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    ruolo ENUM('admin', 'operatore') DEFAULT 'operatore',
+    ruolo ENUM('admin', 'operatore', 'sviluppatore') DEFAULT 'operatore',
     attivo TINYINT(1) DEFAULT 1,
     data_creazione TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     data_modifica TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
