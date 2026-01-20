@@ -247,6 +247,7 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
 <script nonce="<?php echo $cspNonce; ?>">
 const cittaInput = document.getElementById('clienteCitta');
 const cittaDatalist = document.getElementById('cittaSuggerimenti');
+const apiBase = <?php echo json_encode(rtrim(dirname($_SERVER['PHP_SELF']), '/')); ?>;
 
 let debounceCity;
 function debounceCitySearch() {
@@ -262,7 +263,7 @@ async function runCitySearch() {
         return;
     }
     try {
-        const res = await fetch(`api/istat_comuni.php?q=${encodeURIComponent(query)}&limit=20`, {
+        const res = await fetch(`${apiBase}/api/istat_comuni.php?q=${encodeURIComponent(query)}&limit=20`, {
             headers: { 'Accept': 'application/json' }
         });
         const data = await res.json();
@@ -279,7 +280,7 @@ async function normalizeCityOnBlur() {
     const query = cittaInput.value.trim();
     if (query.length < 2) return;
     try {
-        const res = await fetch(`api/istat_comuni.php?q=${encodeURIComponent(query)}&limit=50`, {
+        const res = await fetch(`${apiBase}/api/istat_comuni.php?q=${encodeURIComponent(query)}&limit=50`, {
             headers: { 'Accept': 'application/json' }
         });
         const data = await res.json();
