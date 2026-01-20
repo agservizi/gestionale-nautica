@@ -136,8 +136,7 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
                         <div class="row">
                             <div class="col-md-8 mb-3">
                                 <label for="clienteIndirizzo" class="form-label">Indirizzo</label>
-                                <input type="text" class="form-control" id="clienteIndirizzo" name="indirizzo" value="<?php echo htmlspecialchars($cliente['indirizzo'] ?? ''); ?>" list="indirizzoSuggerimenti" autocomplete="off" required pattern=".*\d+.*" title="Inserisci anche il numero civico">
-                                <datalist id="indirizzoSuggerimenti"></datalist>
+                                <input type="text" class="form-control" id="clienteIndirizzo" name="indirizzo" value="<?php echo htmlspecialchars($cliente['indirizzo'] ?? ''); ?>" autocomplete="off">
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label for="clienteCitta" class="form-label">Città</label>
@@ -246,13 +245,10 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
 </div>
 
 <script nonce="<?php echo $cspNonce; ?>">
-const indirizzoInput = document.getElementById('clienteIndirizzo');
 const cittaInput = document.getElementById('clienteCitta');
-const indirizzoDatalist = document.getElementById('indirizzoSuggerimenti');
 const cittaDatalist = document.getElementById('cittaSuggerimenti');
 
 let comuniIstat = [];
-let addressSuggestions = {};
 
 async function loadComuniIstat() {
     try {
@@ -267,100 +263,6 @@ async function loadComuniIstat() {
     } catch (e) {
         comuniIstat = [];
     }
-}
-
-function normalizeCityName(name) {
-    if (!name) return '';
-    if (!comuniIstat.length) return name;
-    const lowered = name.toLowerCase();
-    const match = comuniIstat.find(c => c.toLowerCase() === lowered);
-    return match || name;
-}
-
-function buildAddressLabel(item) {
-    const addr = item.address || {};
-    const road = addr.road || addr.pedestrian || addr.footway || '';
-    const house = addr.house_number || '';
-    if (road && house) {
-        return `${road} ${house}`.trim();
-    }
-    return item.display_name || '';
-}
-
-function extractCity(item) {
-    const addr = item.address || {};
-    return addr.city || addr.town || addr.village || addr.municipality || addr.county || '';
-}
-
-let debounceTimer;
-function debounceAddressSearch() {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(runAddressSearch, 350);
-}
-
-async function runAddressSearch() {
-    if (!indirizzoInput) return;
-    const query = indirizzoInput.value.trim();
-    if (query.length < 4) {
-        if (indirizzoDatalist) indirizzoDatalist.innerHTML = '';
-        addressSuggestions = {};
-        return;
-    }
-
-    const numberMatch = query.match(/\s(\d+[a-zA-Z]?)$/u);
-    const numberSuffix = numberMatch ? numberMatch[1] : '';
-
-    const citta = cittaInput && cittaInput.value.trim() ? `, ${cittaInput.value.trim()}` : ', Italia';
-    const url = `/pages/api/osm_search.php?q=${encodeURIComponent(query + citta)}&limit=6`;
-
-    try {
-        const res = await fetch(url, { headers: { 'Accept-Language': 'it' } });
-        const data = await res.json();
-        addressSuggestions = {};
-        if (indirizzoDatalist) {
-            indirizzoDatalist.innerHTML = '';
-            data.forEach(item => {
-                const label = buildAddressLabel(item);
-                const city = normalizeCityName(extractCity(item));
-                if (label) {
-                    addressSuggestions[label] = city;
-                    const opt = document.createElement('option');
-                    opt.value = label;
-                    indirizzoDatalist.appendChild(opt);
-
-                    if (numberSuffix) {
-                        const labelWithNumber = `${label} ${numberSuffix}`.trim();
-                        addressSuggestions[labelWithNumber] = city;
-                        const optNum = document.createElement('option');
-                        optNum.value = labelWithNumber;
-                        indirizzoDatalist.appendChild(optNum);
-                    }
-                }
-            });
-        }
-    } catch (e) {
-        addressSuggestions = {};
-    }
-}
-
-function applyCityFromAddress() {
-    if (!indirizzoInput || !cittaInput) return;
-    const label = indirizzoInput.value.trim();
-    if (label && addressSuggestions[label]) {
-        cittaInput.value = addressSuggestions[label];
-        return;
-    }
-
-    const baseLabel = label.replace(/\s+\d+[a-zA-Z]?$/u, '').trim();
-    if (baseLabel && addressSuggestions[baseLabel]) {
-        cittaInput.value = addressSuggestions[baseLabel];
-    }
-}
-
-if (indirizzoInput) {
-    indirizzoInput.addEventListener('input', debounceAddressSearch);
-    indirizzoInput.addEventListener('change', applyCityFromAddress);
-    indirizzoInput.addEventListener('blur', applyCityFromAddress);
 }
 
 loadComuniIstat();
