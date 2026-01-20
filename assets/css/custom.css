@@ -64,6 +64,21 @@ body {
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+/* Navbar search results */
+.search-suggest-list {
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    max-height: 280px;
+    overflow-y: auto;
+    display: none;
+}
+
+.search-suggest-list.show {
+    display: block;
+}
+
 /* Wrapper e Layout */
 .wrapper {
     display: flex;

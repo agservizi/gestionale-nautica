@@ -200,8 +200,12 @@ function getCookieValue(name) {
 function initSearch() {
     const searchForm = document.getElementById('searchForm');
     const searchInput = document.getElementById('searchCliente');
+    const resultsPanel = document.getElementById('searchResults');
 
     if (searchForm && searchInput) {
+        const apiBase = searchForm.getAttribute('data-api-base') || '/pages';
+        let debounceTimer;
+
         searchForm.addEventListener('submit', function (e) {
             e.preventDefault();
             const query = searchInput.value.trim();
@@ -210,9 +214,59 @@ function initSearch() {
             }
         });
 
-        // Autocomplete (da implementare con chiamata AJAX se necessario)
+        const hideResults = () => {
+            if (!resultsPanel) return;
+            resultsPanel.classList.remove('show');
+            resultsPanel.innerHTML = '';
+        };
+
+        const renderResults = (results) => {
+            if (!resultsPanel) return;
+            if (!results || results.length === 0) {
+                resultsPanel.innerHTML = '<div class="list-group-item text-muted">Nessun risultato</div>';
+                resultsPanel.classList.add('show');
+                return;
+            }
+            resultsPanel.innerHTML = results.map(item => {
+                const label = `${item.cognome} ${item.nome}`.trim();
+                const meta = [item.email, item.codice_fiscale].filter(Boolean).join(' · ');
+                return `
+                    <a href="${apiBase}/cliente_dettaglio.php?id=${item.id}" class="list-group-item list-group-item-action">
+                        <div class="fw-semibold">${label}</div>
+                        ${meta ? `<div class=\"small text-muted\">${meta}</div>` : ''}
+                    </a>
+                `;
+            }).join('');
+            resultsPanel.classList.add('show');
+        };
+
+        const runSearch = async () => {
+            const query = searchInput.value.trim();
+            if (query.length < 2) {
+                hideResults();
+                return;
+            }
+            try {
+                const res = await fetch(`${apiBase}/api/clienti_search.php?q=${encodeURIComponent(query)}&limit=8`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                renderResults(data.results || []);
+            } catch (e) {
+                hideResults();
+            }
+        };
+
         searchInput.addEventListener('input', function () {
-            // Implementa autocomplete qui se necessario
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(runSearch, 250);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!resultsPanel) return;
+            if (e.target !== searchInput && !resultsPanel.contains(e.target)) {
+                hideResults();
+            }
         });
     }
 }

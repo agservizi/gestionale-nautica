@@ -5,11 +5,13 @@
         </button>
 
         <div class="ms-auto d-flex align-items-center gap-2">
-            <form class="d-flex" id="searchForm">
-                <input class="form-control me-2" type="search" placeholder="Cerca cliente..." id="searchCliente">
+            <?php $apiBase = rtrim(dirname($_SERVER['PHP_SELF']), '/'); ?>
+            <form class="d-flex position-relative" id="searchForm" data-api-base="<?php echo htmlspecialchars($apiBase); ?>">
+                <input class="form-control me-2" type="search" placeholder="Cerca cliente..." id="searchCliente" autocomplete="off">
                 <button class="btn btn-outline-primary" type="submit">
                     <i class="bi bi-search"></i>
                 </button>
+                <div id="searchResults" class="search-suggest-list list-group position-absolute"></div>
             </form>
             <a href="/logout.php" class="btn btn-outline-danger icon-btn" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Logout" aria-label="Logout">
                 <i class="bi bi-box-arrow-right"></i>
