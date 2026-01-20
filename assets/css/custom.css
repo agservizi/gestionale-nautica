@@ -33,6 +33,18 @@ body {
     color: var(--color-dark);
 }
 
+/* City selector dropdown */
+.city-suggest-list {
+    z-index: 1050;
+    max-height: 240px;
+    overflow-y: auto;
+    display: none;
+}
+
+.city-suggest-list.show {
+    display: block;
+}
+
 /* Wrapper e Layout */
 .wrapper {
     display: flex;

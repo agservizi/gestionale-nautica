@@ -122,13 +122,13 @@ function createCliente($data) {
     }
     $stmt = $db->prepare("
         INSERT INTO clienti (
-            nome, cognome, telefono, email, codice_fiscale, data_nascita, indirizzo, citta,
+            nome, cognome, telefono, email, codice_fiscale, data_nascita, citta_nascita, indirizzo, citta,
             tipo_pratica, numero_patente, data_conseguimento_patente, data_scadenza_patente,
             numero_registro_iscrizione, data_iscrizione, occhiali,
             documento_tipo, documento_data_emissione, documento_data_scadenza,
             note
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
     $stmt->execute([
         $data['nome'],
@@ -137,6 +137,7 @@ function createCliente($data) {
         $data['email'] ?? null,
         $codiceFiscale,
         $data['data_nascita'] ?? null,
+        $data['citta_nascita'] ?? null,
         $data['indirizzo'] ?? null,
         $data['citta'] ?? null,
         $data['tipo_pratica'] ?? 'Altro',
@@ -171,7 +172,7 @@ function updateCliente($id, $data) {
     }
     $stmt = $db->prepare("
         UPDATE clienti 
-        SET nome = ?, cognome = ?, telefono = ?, email = ?, codice_fiscale = ?, data_nascita = ?, indirizzo = ?, citta = ?,
+        SET nome = ?, cognome = ?, telefono = ?, email = ?, codice_fiscale = ?, data_nascita = ?, citta_nascita = ?, indirizzo = ?, citta = ?,
             tipo_pratica = ?, numero_patente = ?, data_conseguimento_patente = ?, data_scadenza_patente = ?,
             numero_registro_iscrizione = ?, data_iscrizione = ?, occhiali = ?,
             documento_tipo = ?, documento_data_emissione = ?, documento_data_scadenza = ?,
@@ -185,6 +186,7 @@ function updateCliente($id, $data) {
         $data['email'] ?? null,
         $codiceFiscale,
         $data['data_nascita'] ?? null,
+        $data['citta_nascita'] ?? null,
         $data['indirizzo'] ?? null,
         $data['citta'] ?? null,
         $data['tipo_pratica'] ?? 'Altro',

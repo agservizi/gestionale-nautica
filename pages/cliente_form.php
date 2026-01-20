@@ -128,6 +128,13 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
                                 <label for="clienteDataNascita" class="form-label">Nato il</label>
                                 <input type="date" class="form-control" id="clienteDataNascita" name="data_nascita" value="<?php echo htmlspecialchars($cliente['data_nascita'] ?? ''); ?>">
                             </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="clienteCittaNascita" class="form-label">Città di nascita</label>
+                                <div class="position-relative">
+                                    <input type="text" class="form-control" id="clienteCittaNascita" name="citta_nascita" value="<?php echo htmlspecialchars($cliente['citta_nascita'] ?? ''); ?>" autocomplete="off">
+                                    <div id="cittaNascitaSuggerimenti" class="city-suggest-list list-group position-absolute w-100"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -140,8 +147,10 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label for="clienteCitta" class="form-label">Città</label>
-                                <input type="text" class="form-control" id="clienteCitta" name="citta" value="<?php echo htmlspecialchars($cliente['citta'] ?? ''); ?>" list="cittaSuggerimenti" autocomplete="off">
-                                <datalist id="cittaSuggerimenti"></datalist>
+                                <div class="position-relative">
+                                    <input type="text" class="form-control" id="clienteCitta" name="citta" value="<?php echo htmlspecialchars($cliente['citta'] ?? ''); ?>" autocomplete="off">
+                                    <div id="cittaSuggerimenti" class="city-suggest-list list-group position-absolute w-100"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -246,7 +255,9 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
 
 <script nonce="<?php echo $cspNonce; ?>">
 const cittaInput = document.getElementById('clienteCitta');
-const cittaDatalist = document.getElementById('cittaSuggerimenti');
+const cittaPanel = document.getElementById('cittaSuggerimenti');
+const cittaNascitaInput = document.getElementById('clienteCittaNascita');
+const cittaNascitaPanel = document.getElementById('cittaNascitaSuggerimenti');
 const appBase = <?php echo json_encode(rtrim(dirname(dirname($_SERVER['PHP_SELF'])), '/')); ?>;
 
 let comuniList = [];
@@ -272,23 +283,71 @@ function debounceCitySearch() {
     debounceCity = setTimeout(runCitySearch, 200);
 }
 
-function runCitySearch() {
-    if (!cittaInput || !cittaDatalist) return;
-    const query = cittaInput.value.trim().toLowerCase();
+function renderCityResults(panel, results) {
+    if (!panel) return;
+    if (results.length === 0) {
+        panel.innerHTML = '<div class="list-group-item text-muted">Nessun risultato</div>';
+        panel.classList.add('show');
+        return;
+    }
+    panel.innerHTML = results.map(c => `
+        <button type="button" class="list-group-item list-group-item-action" data-value="${c}">${c}</button>
+    `).join('');
+    panel.classList.add('show');
+}
+
+function runCitySearch(input, panel) {
+    if (!input || !panel) return;
+    const query = input.value.trim().toLowerCase();
     if (query.length < 2) {
-        cittaDatalist.innerHTML = '';
+        panel.innerHTML = '';
+        panel.classList.remove('show');
         return;
     }
     const results = comuniList
         .filter(name => name.toLowerCase().includes(query))
         .slice(0, 20);
-    cittaDatalist.innerHTML = results.map(c => `<option value="${c}"></option>`).join('');
+    renderCityResults(panel, results);
 }
 
 if (cittaInput) {
     cittaInput.addEventListener('focus', loadComuniJson);
     cittaInput.addEventListener('input', debounceCitySearch);
 }
+
+if (cittaNascitaInput) {
+    cittaNascitaInput.addEventListener('focus', loadComuniJson);
+    cittaNascitaInput.addEventListener('input', function() {
+        clearTimeout(debounceCity);
+        debounceCity = setTimeout(() => runCitySearch(cittaNascitaInput, cittaNascitaPanel), 200);
+    });
+}
+
+function bindPanelSelection(panel, input) {
+    if (!panel || !input) return;
+    panel.addEventListener('mousedown', function(e) {
+        const item = e.target.closest('[data-value]');
+        if (!item) return;
+        e.preventDefault();
+        input.value = item.getAttribute('data-value');
+        panel.classList.remove('show');
+        panel.innerHTML = '';
+    });
+}
+
+bindPanelSelection(cittaPanel, cittaInput);
+bindPanelSelection(cittaNascitaPanel, cittaNascitaInput);
+
+document.addEventListener('click', function(e) {
+    if (cittaPanel && cittaInput && !cittaPanel.contains(e.target) && e.target !== cittaInput) {
+        cittaPanel.classList.remove('show');
+        cittaPanel.innerHTML = '';
+    }
+    if (cittaNascitaPanel && cittaNascitaInput && !cittaNascitaPanel.contains(e.target) && e.target !== cittaNascitaInput) {
+        cittaNascitaPanel.classList.remove('show');
+        cittaNascitaPanel.innerHTML = '';
+    }
+});
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
