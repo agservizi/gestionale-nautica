@@ -56,10 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $data_corrente = $_GET['data'] ?? date('Y-m-d');
 $clienti = getClienti();
-$pratiche_attive = array_merge(
-    getPratiche(['stato' => 'Aperta']),
-    getPratiche(['stato' => 'In corso'])
-);
+$pratiche_attive = getPratiche();
 ?>
 
 <?php include __DIR__ . '/../includes/sidebar.php'; ?>
