@@ -66,6 +66,16 @@ if ($backupDirReadable) {
         glob($backupDir . '/*.sql') ?: [],
         glob($backupDir . '/*.zip') ?: []
     );
+    if (empty($backupFiles)) {
+        foreach (new DirectoryIterator($backupDir) as $entry) {
+            if ($entry->isFile()) {
+                $ext = strtolower($entry->getExtension());
+                if ($ext === 'sql' || $ext === 'zip') {
+                    $backupFiles[] = $entry->getPathname();
+                }
+            }
+        }
+    }
 }
 
 function backupFileTimestamp(string $path): ?int {
