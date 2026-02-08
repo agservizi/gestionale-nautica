@@ -650,6 +650,25 @@ html.sidebar-collapsed body .content {
     border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
+/* Footer layout */
+.app-footer-layout {
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+}
+
+html.sidebar-collapsed .app-footer-layout,
+body.sidebar-collapsed .app-footer-layout {
+    margin-left: var(--sidebar-collapsed-width);
+    width: calc(100% - var(--sidebar-collapsed-width));
+}
+
+@media (max-width: 992px) {
+    .app-footer-layout {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
 
 .cookie-banner__content {
     display: flex;

@@ -1,6 +1,6 @@
     </div> <!-- /wrapper -->
 
-    <footer class="py-3 border-top bg-white">
+    <footer class="py-3 border-top bg-white app-footer-layout">
         <div class="container-fluid">
             <div class="d-flex flex-column flex-md-row align-items-center justify-content-between small text-muted">
                 <div>
