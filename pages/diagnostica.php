@@ -57,25 +57,48 @@ if ($phpErrorLogPath) {
     }
 }
 
-$backupDir = __DIR__ . '/../backups';
+$backupDir = getenv('BACKUP_DIR') ?: (__DIR__ . '/../backups');
 $backupFiles = [];
-if (is_dir($backupDir)) {
+$backupDirReadable = is_dir($backupDir) && is_readable($backupDir);
+if ($backupDirReadable) {
+    $backupDir = rtrim($backupDir, '/');
     $backupFiles = array_merge(
         glob($backupDir . '/*.sql') ?: [],
         glob($backupDir . '/*.zip') ?: []
     );
 }
 
+function backupFileTimestamp(string $path): ?int {
+    $mtime = @filemtime($path);
+    if ($mtime !== false) {
+        return $mtime;
+    }
+
+    $base = basename($path);
+    if (preg_match('/backup[_-](\d{8})_(\d{6})/i', $base, $matches)) {
+        $dt = DateTime::createFromFormat('Ymd_His', $matches[1] . '_' . $matches[2]);
+        if ($dt instanceof DateTime) {
+            return $dt->getTimestamp();
+        }
+    }
+
+    return null;
+}
+
 $lastBackupTime = null;
 if (!empty($backupFiles)) {
-    usort($backupFiles, function($a, $b) {
-        return filemtime($b) <=> filemtime($a);
-    });
-    $lastBackupTime = filemtime($backupFiles[0]);
+    foreach ($backupFiles as $file) {
+        $timestamp = backupFileTimestamp($file);
+        if ($timestamp !== null && ($lastBackupTime === null || $timestamp > $lastBackupTime)) {
+            $lastBackupTime = $timestamp;
+        }
+    }
 }
 
 $backupStatus = ['label' => 'Nessun backup', 'class' => 'danger'];
-if ($lastBackupTime) {
+if (!$backupDirReadable) {
+    $backupStatus = ['label' => 'Non accessibile', 'class' => 'danger'];
+} elseif ($lastBackupTime) {
     $days = floor((time() - $lastBackupTime) / 86400);
     if ($days <= 7) {
         $backupStatus = ['label' => 'OK', 'class' => 'success'];
