@@ -287,7 +287,7 @@ $anni = range(getAppYearStart(), date('Y') + 1);
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Chiudi</button>
-                                                        <button type="button" class="btn btn-primary receipt-print-btn">Stampa</button>
+                                                        <a class="btn btn-primary" href="/pages/ricevuta_proforma.php?pratica_id=<?php echo $pratica['id']; ?>" target="_blank" rel="noopener">Stampa PDF</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -309,17 +309,5 @@ $anni = range(getAppYearStart(), date('Y') + 1);
     </div>
     
 </div>
-
-<script nonce="<?php echo $cspNonce; ?>">
-document.querySelectorAll('.receipt-print-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        document.body.classList.add('print-receipt');
-        window.print();
-        setTimeout(function() {
-            document.body.classList.remove('print-receipt');
-        }, 200);
-    });
-});
-</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
