@@ -4,7 +4,7 @@
         <div class="container-fluid">
             <div class="d-flex flex-column flex-md-row align-items-center justify-content-between small text-muted">
                 <div>
-                    NAUTIKAPRO <?php echo date('Y'); ?> sviluppato da
+                    NautikaPro <?php echo date('Y'); ?> sviluppato da
                     <a href="https://agenziaplinio.it" target="_blank" rel="noopener noreferrer">AG SERVIZI</a>
                 </div>
                 <div class="mt-2 mt-md-0">AUTOSCUOLA LIANA</div>
