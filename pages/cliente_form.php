@@ -274,9 +274,7 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
 const cfInput = document.getElementById('clienteCodiceFiscale');
 const clienteIdInput = document.querySelector('input[name="cliente_id"]');
 const modalElement = document.getElementById('clienteEsistenteModal');
-const modalInstance = (modalElement && typeof bootstrap !== 'undefined' && typeof bootstrap.Modal === 'function')
-    ? new bootstrap.Modal(modalElement)
-    : null;
+let modalInstance = null;
 const cittaInput = document.getElementById('clienteCitta');
 const cittaPanel = document.getElementById('cittaSuggerimenti');
 const cittaNascitaInput = document.getElementById('clienteCittaNascita');
@@ -400,6 +398,10 @@ async function lookupClienteByCf() {
         setValueIfExists('clienteEmail', data.cliente.email);
         setValueIfExists('clienteDataNascita', data.cliente.data_nascita);
         setValueIfExists('clienteCittaNascita', data.cliente.citta_nascita);
+
+        if (!modalInstance && modalElement && typeof bootstrap !== 'undefined' && typeof bootstrap.Modal === 'function') {
+            modalInstance = new bootstrap.Modal(modalElement);
+        }
 
         if (modalInstance && String(data.cliente.id) !== lastFoundId) {
             lastFoundId = String(data.cliente.id);
