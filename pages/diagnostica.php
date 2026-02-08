@@ -119,6 +119,18 @@ if (!$backupDirReadable) {
     }
 }
 
+if ($lastBackupTime === null && !empty($jobs)) {
+    foreach ($jobs as $job) {
+        if (($job['job_key'] ?? '') === 'backup_daily' && !empty($job['last_run'])) {
+            $lastBackupTime = strtotime($job['last_run']) ?: null;
+            if ($lastBackupTime !== null && !$backupDirReadable) {
+                $backupStatus = ['label' => 'Da verificare', 'class' => 'warning'];
+            }
+            break;
+        }
+    }
+}
+
 $uploadsDir = __DIR__ . '/../uploads';
 $freeBytes = is_dir($uploadsDir) ? @disk_free_space($uploadsDir) : false;
 $totalBytes = is_dir($uploadsDir) ? @disk_total_space($uploadsDir) : false;
