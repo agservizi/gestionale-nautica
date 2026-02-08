@@ -1,0 +1,19 @@
+RewriteEngine On
+
+# Redirect /pages/... to clean URLs
+RewriteCond %{THE_REQUEST} \s/+pages/([^\s?]+) [NC]
+RewriteRule ^pages/(.+)$ /$1 [R=301,L]
+
+# Home
+RewriteRule ^$ /index.php [L]
+
+# API shortcut
+RewriteRule ^api/(.+)$ /pages/api/$1 [L,QSA]
+
+# Serve existing files/directories
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Rewrite everything else to /pages/...
+RewriteRule ^(.+)$ /pages/$1 [L,QSA]
