@@ -106,7 +106,7 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="clienteCodiceFiscale" class="form-label">Codice Fiscale</label>
-                                <input type="text" class="form-control" id="clienteCodiceFiscale" name="codice_fiscale" maxlength="16" value="<?php echo htmlspecialchars($cliente['codice_fiscale'] ?? ''); ?>">
+                                <input type="text" class="form-control" id="clienteCodiceFiscale" name="codice_fiscale" maxlength="16" style="text-transform: uppercase;" value="<?php echo htmlspecialchars($cliente['codice_fiscale'] ?? ''); ?>">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="clienteNome" class="form-label">Nome *</label>
@@ -274,7 +274,9 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
 const cfInput = document.getElementById('clienteCodiceFiscale');
 const clienteIdInput = document.querySelector('input[name="cliente_id"]');
 const modalElement = document.getElementById('clienteEsistenteModal');
-const modalInstance = modalElement ? new bootstrap.Modal(modalElement) : null;
+const modalInstance = (modalElement && typeof bootstrap !== 'undefined' && typeof bootstrap.Modal === 'function')
+    ? new bootstrap.Modal(modalElement)
+    : null;
 const cittaInput = document.getElementById('clienteCitta');
 const cittaPanel = document.getElementById('cittaSuggerimenti');
 const cittaNascitaInput = document.getElementById('clienteCittaNascita');
@@ -411,6 +413,7 @@ async function lookupClienteByCf() {
 if (cfInput) {
     cfInput.addEventListener('blur', lookupClienteByCf);
     cfInput.addEventListener('input', function() {
+        cfInput.value = normalizeCf(cfInput.value);
         clearTimeout(cfLookupTimer);
         cfLookupTimer = setTimeout(lookupClienteByCf, 400);
     });
