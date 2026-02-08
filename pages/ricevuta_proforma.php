@@ -32,12 +32,28 @@ $dataRif = !empty($pagamenti) ? $pagamenti[0]['data_pagamento'] : $pratica['data
 $ricevutaData = formatDate($dataRif);
 $ricevutaNumero = date('Y', strtotime($dataRif)) . '-PR-' . $pratica['id'];
 
-if (!file_exists(__DIR__ . '/../vendor/autoload.php')) {
+$autoloadCandidates = [
+    __DIR__ . '/../vendor/autoload.php',
+    dirname(__DIR__) . '/vendor/autoload.php',
+    ($_SERVER['DOCUMENT_ROOT'] ?? '') . '/vendor/autoload.php',
+    isset($_SERVER['DOCUMENT_ROOT']) ? dirname($_SERVER['DOCUMENT_ROOT']) . '/vendor/autoload.php' : ''
+];
+
+$autoloadPath = null;
+foreach ($autoloadCandidates as $candidate) {
+    if ($candidate && file_exists($candidate)) {
+        $autoloadPath = $candidate;
+        break;
+    }
+}
+
+if (!$autoloadPath) {
     http_response_code(500);
     echo 'Dipendenze mancanti. Esegui: composer install';
     exit;
 }
-require __DIR__ . '/../vendor/autoload.php';
+
+require $autoloadPath;
 
 $rows = '';
 if (empty($pagamenti)) {
