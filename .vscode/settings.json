@@ -14,5 +14,8 @@
             "database": "u393875765_nautikapro",
             "username": "u393875765_nautikapro"
         }
+    ],
+    "intelephense.files.exclude": [
+        "**/vendor/**"
     ]
 }
