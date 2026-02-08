@@ -260,7 +260,8 @@ function getPratiche($filters = []) {
     $db = getDB();
     $sql = "SELECT p.*, 
             CONCAT(c.cognome, ' ', c.nome) as cliente_nome,
-            c.telefono as cliente_telefono
+            c.telefono as cliente_telefono,
+            c.email as cliente_email
             FROM pratiche p
             INNER JOIN clienti c ON p.cliente_id = c.id
             WHERE 1=1";

@@ -693,3 +693,52 @@ body.sidebar-collapsed .app-footer-layout {
         justify-content: flex-start;
     }
 }
+
+/* Proforma receipt */
+.receipt-proforma {
+    font-size: 0.95rem;
+    color: var(--color-dark);
+}
+
+.receipt-proforma .receipt-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.receipt-proforma .receipt-meta {
+    font-size: 0.85rem;
+    color: var(--color-gray);
+}
+
+.receipt-proforma .receipt-section {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    background: #fff;
+}
+
+.receipt-proforma .receipt-table th {
+    background: var(--color-light);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+@media print {
+    body.print-receipt * {
+        visibility: hidden;
+    }
+
+    body.print-receipt .receipt-print,
+    body.print-receipt .receipt-print * {
+        visibility: visible;
+    }
+
+    body.print-receipt .receipt-print {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+}
