@@ -1,5 +1,17 @@
     </div> <!-- /wrapper -->
 
+    <footer class="py-3 border-top bg-white">
+        <div class="container-fluid">
+            <div class="d-flex flex-column flex-md-row align-items-center justify-content-between small text-muted">
+                <div>
+                    NAUTIKAPRO <?php echo date('Y'); ?> SVILUPPATO DA
+                    <a href="https://agenziaplinio.it" target="_blank" rel="noopener noreferrer">AG SERVIZI</a>
+                </div>
+                <div class="mt-2 mt-md-0">AUTOSCUOLA LIANA</div>
+            </div>
+        </div>
+    </footer>
+
     <?php $consentValue = function_exists('getConsentValue') ? getConsentValue() : null; ?>
     <div id="cookieBanner" class="cookie-banner <?php echo $consentValue ? 'd-none' : ''; ?>" data-consent-name="<?php echo htmlspecialchars(getConsentCookieName(), ENT_QUOTES); ?>">
         <div class="cookie-banner__content">
