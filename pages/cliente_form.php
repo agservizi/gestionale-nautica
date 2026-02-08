@@ -105,6 +105,10 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
                         <h6 class="mb-3 text-uppercase text-muted">Anagrafica</h6>
                         <div class="row">
                             <div class="col-md-6 mb-3">
+                                <label for="clienteCodiceFiscale" class="form-label">Codice Fiscale</label>
+                                <input type="text" class="form-control" id="clienteCodiceFiscale" name="codice_fiscale" maxlength="16" value="<?php echo htmlspecialchars($cliente['codice_fiscale'] ?? ''); ?>">
+                            </div>
+                            <div class="col-md-6 mb-3">
                                 <label for="clienteNome" class="form-label">Nome *</label>
                                 <input type="text" class="form-control" id="clienteNome" name="nome" required value="<?php echo htmlspecialchars($cliente['nome'] ?? ''); ?>">
                             </div>
@@ -119,10 +123,6 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
                             <div class="col-md-6 mb-3">
                                 <label for="clienteEmail" class="form-label">Email</label>
                                 <input type="email" class="form-control" id="clienteEmail" name="email" value="<?php echo htmlspecialchars($cliente['email'] ?? ''); ?>">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="clienteCodiceFiscale" class="form-label">Codice Fiscale</label>
-                                <input type="text" class="form-control" id="clienteCodiceFiscale" name="codice_fiscale" maxlength="16" value="<?php echo htmlspecialchars($cliente['codice_fiscale'] ?? ''); ?>">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="clienteDataNascita" class="form-label">Nato il</label>
@@ -253,7 +253,28 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
     </div>
 </div>
 
+<div class="modal fade" id="clienteEsistenteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cliente gia presente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Esiste gia un cliente con questo codice fiscale. I dati anagrafici sono stati compilati automaticamente.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script nonce="<?php echo $cspNonce; ?>">
+const cfInput = document.getElementById('clienteCodiceFiscale');
+const clienteIdInput = document.querySelector('input[name="cliente_id"]');
+const modalElement = document.getElementById('clienteEsistenteModal');
+const modalInstance = modalElement ? new bootstrap.Modal(modalElement) : null;
 const cittaInput = document.getElementById('clienteCitta');
 const cittaPanel = document.getElementById('cittaSuggerimenti');
 const cittaNascitaInput = document.getElementById('clienteCittaNascita');
@@ -337,6 +358,63 @@ function bindPanelSelection(panel, input) {
 
 bindPanelSelection(cittaPanel, cittaInput);
 bindPanelSelection(cittaNascitaPanel, cittaNascitaInput);
+
+let cfLookupTimer;
+let lastLookupCf = '';
+let lastFoundId = '';
+
+function normalizeCf(value) {
+    return value.trim().toUpperCase();
+}
+
+function setValueIfExists(id, value) {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.value = value || '';
+}
+
+async function lookupClienteByCf() {
+    if (!cfInput) return;
+    const cf = normalizeCf(cfInput.value);
+    cfInput.value = cf;
+    if (cf.length !== 16) return;
+    if (cf === lastLookupCf) return;
+    lastLookupCf = cf;
+
+    const params = new URLSearchParams({ cf });
+    if (clienteIdInput && clienteIdInput.value) {
+        params.set('exclude_id', clienteIdInput.value);
+    }
+
+    try {
+        const res = await fetch(`${appBase}/pages/api/cliente_by_cf.php?${params.toString()}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.found || !data.cliente) return;
+
+        setValueIfExists('clienteNome', data.cliente.nome);
+        setValueIfExists('clienteCognome', data.cliente.cognome);
+        setValueIfExists('clienteTelefono', data.cliente.telefono);
+        setValueIfExists('clienteEmail', data.cliente.email);
+        setValueIfExists('clienteDataNascita', data.cliente.data_nascita);
+        setValueIfExists('clienteCittaNascita', data.cliente.citta_nascita);
+
+        if (modalInstance && String(data.cliente.id) !== lastFoundId) {
+            lastFoundId = String(data.cliente.id);
+            modalInstance.show();
+        }
+    } catch (e) {
+        return;
+    }
+}
+
+if (cfInput) {
+    cfInput.addEventListener('blur', lookupClienteByCf);
+    cfInput.addEventListener('input', function() {
+        clearTimeout(cfLookupTimer);
+        cfLookupTimer = setTimeout(lookupClienteByCf, 400);
+    });
+}
 
 document.addEventListener('click', function(e) {
     if (cittaPanel && cittaInput && !cittaPanel.contains(e.target) && e.target !== cittaInput) {

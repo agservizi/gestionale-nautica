@@ -105,6 +105,26 @@ function getClienteById($id) {
     return $stmt->fetch();
 }
 
+function getClienteByCodiceFiscale($cf, $excludeId = null) {
+    $db = getDB();
+    $codiceFiscale = normalizeCodiceFiscale($cf);
+    if (!$codiceFiscale) {
+        return null;
+    }
+
+    $sql = "SELECT * FROM clienti WHERE codice_fiscale = ?";
+    $params = [$codiceFiscale];
+    if ($excludeId !== null) {
+        $sql .= " AND id <> ?";
+        $params[] = (int)$excludeId;
+    }
+    $sql .= " LIMIT 1";
+
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetch();
+}
+
 function createCliente($data) {
     $db = getDB();
     $codiceFiscale = normalizeCodiceFiscale($data['codice_fiscale'] ?? null);
