@@ -280,7 +280,8 @@ function initTooltips() {
     }
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"], [data-tooltip="tooltip"]'));
     tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-        new bootstrap.Tooltip(tooltipTriggerEl);
+        const placement = tooltipTriggerEl.getAttribute('data-bs-placement') || 'top';
+        new bootstrap.Tooltip(tooltipTriggerEl, { placement });
     });
 }
 
