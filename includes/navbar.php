@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom sticky-top">
+<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom sticky-top app-navbar">
     <div class="container-fluid">
         <button type="button" id="sidebarCollapseTop" class="btn btn-primary sidebar-toggle-btn">
             <i class="bi bi-list"></i>
