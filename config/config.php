@@ -41,6 +41,18 @@ define('APP_YEAR_START', 2025);
 // Timezone
 date_default_timezone_set('Europe/Rome');
 
+// Log errori PHP su percorso locale leggibile dall'app
+$defaultLogDir = __DIR__ . '/../logs';
+$defaultLogPath = $defaultLogDir . '/php_error.log';
+$customLogPath = getenv('APP_ERROR_LOG') ?: $defaultLogPath;
+$logDir = dirname($customLogPath);
+if (!is_dir($logDir)) {
+    @mkdir($logDir, 0755, true);
+}
+if (is_dir($logDir) && is_writable($logDir)) {
+    ini_set('error_log', $customLogPath);
+}
+
 // Classe Database con singleton pattern
 class Database {
     private static $instance = null;
