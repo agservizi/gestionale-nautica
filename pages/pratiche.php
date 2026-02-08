@@ -185,7 +185,7 @@ $anni = range(getAppYearStart(), date('Y') + 1);
                                                     <i class="bi bi-eye"></i>
                                                 </a>
                                                 <?php if ($showRicevuta): ?>
-                                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#ricevutaModal-<?php echo $pratica['id']; ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Ricevuta proforma">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#ricevutaModal-<?php echo $pratica['id']; ?>" data-tooltip="tooltip" data-bs-placement="top" title="Ricevuta proforma">
                                                         <i class="bi bi-receipt"></i>
                                                     </button>
                                                 <?php endif; ?>
