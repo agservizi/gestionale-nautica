@@ -4,6 +4,7 @@
 
 // Inizializzazione al caricamento della pagina
 document.addEventListener('DOMContentLoaded', function () {
+    swapBootstrapIconsToFontAwesome();
     initSidebar();
     initSearch();
     initTooltips();
@@ -15,6 +16,89 @@ document.addEventListener('DOMContentLoaded', function () {
     initConsentBanner();
     initGlobalInputFormatting();
 });
+
+// ============================================
+// ICONS - Bootstrap Icons -> Font Awesome
+// ============================================
+function swapBootstrapIconsToFontAwesome() {
+    const iconMap = {
+        'bi-arrow-left': 'fa-arrow-left',
+        'bi-save': 'fa-floppy-disk',
+        'bi-plus-lg': 'fa-plus',
+        'bi-eye': 'fa-eye',
+        'bi-receipt': 'fa-receipt',
+        'bi-hand-thumbs-up': 'fa-thumbs-up',
+        'bi-people': 'fa-users',
+        'bi-file-earmark-text': 'fa-file-lines',
+        'bi-arrow-up-circle': 'fa-circle-arrow-up',
+        'bi-arrow-down-circle': 'fa-circle-arrow-down',
+        'bi-currency-euro': 'fa-euro-sign',
+        'bi-database-check': 'fa-database',
+        'bi-hdd': 'fa-hard-drive',
+        'bi-gear': 'fa-gear',
+        'bi-bug': 'fa-bug',
+        'bi-exclamation-triangle': 'fa-triangle-exclamation',
+        'bi-shield-lock': 'fa-shield',
+        'bi-shield-exclamation': 'fa-shield',
+        'bi-clipboard-data': 'fa-clipboard-list',
+        'bi-paperclip': 'fa-paperclip',
+        'bi-terminal': 'fa-terminal',
+        'bi-journal-text': 'fa-book',
+        'bi-pencil': 'fa-pen',
+        'bi-key': 'fa-key',
+        'bi-trash': 'fa-trash',
+        'bi-shield-check': 'fa-shield',
+        'bi-clock': 'fa-clock',
+        'bi-person': 'fa-user',
+        'bi-telephone': 'fa-phone',
+        'bi-chat-left-text': 'fa-comment-dots',
+        'bi-list': 'fa-list',
+        'bi-search': 'fa-magnifying-glass',
+        'bi-envelope': 'fa-envelope',
+        'bi-info-circle': 'fa-circle-info',
+        'bi-credit-card': 'fa-credit-card',
+        'bi-file-earmark': 'fa-file',
+        'bi-upload': 'fa-upload',
+        'bi-printer': 'fa-print',
+        'bi-file-earmark-excel': 'fa-file-excel',
+        'bi-file-earmark-pdf': 'fa-file-pdf',
+        'bi-card-text': 'fa-id-card',
+        'bi-card-checklist': 'fa-list-check',
+        'bi-calendar-check': 'fa-calendar-check',
+        'bi-calendar-x': 'fa-calendar-xmark',
+        'bi-calendar3': 'fa-calendar',
+        'bi-download': 'fa-download',
+        'bi-person-badge': 'fa-id-badge',
+        'bi-wallet2': 'fa-wallet',
+        'bi-palette': 'fa-palette',
+        'bi-speedometer2': 'fa-gauge',
+        'bi-graph-up': 'fa-chart-line',
+        'bi-person-circle': 'fa-circle-user',
+        'bi-person-gear': 'fa-user-gear',
+        'bi-database-down': 'fa-database',
+        'bi-box-arrow-right': 'fa-right-from-bracket',
+        'bi-box-arrow-in-right': 'fa-right-to-bracket',
+        'bi-compass': 'fa-compass',
+        'bi-send': 'fa-paper-plane',
+        'bi-bar-chart': 'fa-chart-column',
+        'bi-pie-chart': 'fa-chart-pie',
+        'bi-cookie': 'fa-cookie-bite'
+    };
+
+    document.querySelectorAll('i.bi').forEach(icon => {
+        let biClass = '';
+        icon.classList.forEach(cls => {
+            if (cls.startsWith('bi-')) {
+                biClass = cls;
+            }
+        });
+
+        if (!biClass) return;
+        const faClass = iconMap[biClass] || 'fa-circle';
+        icon.classList.remove('bi', biClass);
+        icon.classList.add('fa-solid', faClass);
+    });
+}
 
 // ============================================
 // SIDEBAR COLLAPSE
