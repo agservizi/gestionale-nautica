@@ -15,7 +15,10 @@
             "username": "u393875765_nautikapro"
         }
     ],
-    "intelephense.files.exclude": [
+    "intelephense.environment.includePaths": [
+        "vendor"
+    ],
+    "intelephense.diagnostics.exclude": [
         "**/vendor/**"
     ]
 }
