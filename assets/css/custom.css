@@ -650,6 +650,39 @@ html.sidebar-collapsed body .content {
     border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
+/* Footer */
+.app-footer {
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+    background: linear-gradient(135deg, var(--color-primary) 0%, #244b79 100%);
+    color: var(--color-white);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.app-footer a {
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.app-footer a:hover {
+    color: #ffe08a;
+    text-decoration: underline;
+}
+
+html.sidebar-collapsed .app-footer,
+body.sidebar-collapsed .app-footer {
+    margin-left: var(--sidebar-collapsed-width);
+    width: calc(100% - var(--sidebar-collapsed-width));
+}
+
+@media (max-width: 992px) {
+    .app-footer {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
 .cookie-banner__content {
     display: flex;
     align-items: center;
