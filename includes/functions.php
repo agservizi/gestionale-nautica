@@ -745,6 +745,36 @@ function getStatisticheDashboard($anno = null) {
     ];
 }
 
+function getStatisticheDashboardAllTime() {
+    $db = getDB();
+
+    $totClienti = countClienti();
+    $totPratiche = countPratiche();
+    $praticheAperte = countPratiche(['stato' => 'Aperta']);
+    $praticheInCorso = countPratiche(['stato' => 'In corso']);
+    $praticheCompletate = countPratiche(['stato' => 'Completata']);
+
+    $stmt = $db->query("SELECT COALESCE(SUM(importo), 0) as totale FROM pagamenti");
+    $entrateTotali = $stmt->fetch()['totale'];
+
+    $stmt = $db->query("SELECT COALESCE(SUM(importo), 0) as totale FROM spese");
+    $usciteTotali = $stmt->fetch()['totale'];
+
+    $saldo = $entrateTotali - $usciteTotali;
+
+    return [
+        'totale_clienti' => $totClienti,
+        'totale_pratiche' => $totPratiche,
+        'pratiche_aperte' => $praticheAperte,
+        'pratiche_in_corso' => $praticheInCorso,
+        'pratiche_completate' => $praticheCompletate,
+        'entrate_anno' => $entrateTotali,
+        'uscite_anno' => $usciteTotali,
+        'saldo_anno' => $saldo,
+        'anno' => 'all'
+    ];
+}
+
 function getReportEconomico($anno = null, $mese = null, $tipoPratica = null, $metodoPagamento = null) {
     if(!$anno) $anno = date('Y');
     $db = getDB();

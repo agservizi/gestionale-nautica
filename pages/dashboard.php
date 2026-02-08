@@ -7,6 +7,17 @@ require_once __DIR__ . '/../includes/header.php';
 // Ottieni statistiche
 $anno_corrente = date('Y');
 $stats = getStatisticheDashboard($anno_corrente);
+$useAllTime = false;
+
+if ((int)$stats['totale_pratiche'] === 0 && (float)$stats['entrate_anno'] == 0.0 && (float)$stats['uscite_anno'] == 0.0) {
+    $statsAll = getStatisticheDashboardAllTime();
+    if ((int)$statsAll['totale_pratiche'] > 0 || (float)$statsAll['entrate_anno'] != 0.0 || (float)$statsAll['uscite_anno'] != 0.0) {
+        $stats = $statsAll;
+        $useAllTime = true;
+    }
+}
+
+$periodoLabel = $useAllTime ? 'tutti gli anni' : $anno_corrente;
 $currentUser = currentUser();
 
 // Paginazione dashboard
@@ -38,7 +49,7 @@ function dashboardPageLink($param, $page) {
                         <span>Ciao, <?php echo htmlspecialchars($currentUser['username']); ?>.</span>
                     </h2>
                 <?php endif; ?>
-                <p class="text-muted">Anno: <?php echo $anno_corrente; ?></p>
+                <p class="text-muted">Periodo: <?php echo $periodoLabel; ?></p>
             </div>
         </div>
         
@@ -68,7 +79,7 @@ function dashboardPageLink($param, $page) {
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="card-subtitle text-muted mb-2">Pratiche <?php echo $anno_corrente; ?></h6>
+                                <h6 class="card-subtitle text-muted mb-2">Pratiche <?php echo $periodoLabel; ?></h6>
                                 <h2 class="card-title mb-0"><?php echo $stats['totale_pratiche']; ?></h2>
                             </div>
                             <div class="stat-icon">
@@ -85,7 +96,7 @@ function dashboardPageLink($param, $page) {
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="card-subtitle text-muted mb-2">Entrate <?php echo $anno_corrente; ?></h6>
+                                <h6 class="card-subtitle text-muted mb-2">Entrate <?php echo $periodoLabel; ?></h6>
                                 <h2 class="card-title mb-0"><?php echo formatMoney($stats['entrate_anno']); ?></h2>
                             </div>
                             <div class="stat-icon">
@@ -102,7 +113,7 @@ function dashboardPageLink($param, $page) {
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="card-subtitle text-muted mb-2">Saldo <?php echo $anno_corrente; ?></h6>
+                                <h6 class="card-subtitle text-muted mb-2">Saldo <?php echo $periodoLabel; ?></h6>
                                 <h2 class="card-title mb-0"><?php echo formatMoney($stats['saldo_anno']); ?></h2>
                             </div>
                             <div class="stat-icon">
@@ -165,7 +176,7 @@ function dashboardPageLink($param, $page) {
                     </div>
                     <div class="card-body">
                         <?php
-                        $ultime_pratiche_all = getPratiche(['anno' => $anno_corrente]);
+                        $ultime_pratiche_all = $useAllTime ? getPratiche() : getPratiche(['anno' => $anno_corrente]);
                         $page_pratiche = max(1, (int)($_GET['p_pratiche'] ?? 1));
                         $total_pratiche = count($ultime_pratiche_all);
                         $pages_pratiche = (int)ceil($total_pratiche / $perPageDashboard);
@@ -216,7 +227,7 @@ function dashboardPageLink($param, $page) {
                     </div>
                     <div class="card-body">
                         <?php
-                        $ultimi_pagamenti_all = getPagamenti(['anno' => $anno_corrente]);
+                        $ultimi_pagamenti_all = $useAllTime ? getPagamenti() : getPagamenti(['anno' => $anno_corrente]);
                         $page_pagamenti = max(1, (int)($_GET['p_pagamenti'] ?? 1));
                         $total_pagamenti = count($ultimi_pagamenti_all);
                         $pages_pagamenti = (int)ceil($total_pagamenti / $perPageDashboard);
