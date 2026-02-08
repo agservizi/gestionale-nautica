@@ -67,6 +67,10 @@ foreach ($defaultTheme as $key => $value) {
     
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Fonts (jsdelivr) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.0.8/index.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/fraunces@5.0.14/index.css">
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/assets/css/custom.css">

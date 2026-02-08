@@ -15,6 +15,17 @@
     --color-dark: #343a40;
     --color-white: #ffffff;
     --color-gray: #6c757d;
+
+    --font-sans: "Space Grotesk", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    --font-display: "Fraunces", "Georgia", "Times New Roman", serif;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+    --shadow-card: 0 12px 34px rgba(15, 23, 42, 0.12);
+    --bg-base: #f4f7fb;
+    --bg-accent: #eef3fb;
+    --bg-surface: #ffffff;
     
     --sidebar-width: 260px;
     --sidebar-collapsed-width: 80px;
@@ -28,9 +39,18 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--color-light);
+    font-family: var(--font-sans);
+    background-color: var(--bg-base);
+    background-image:
+        radial-gradient(1200px 600px at 15% -10%, rgba(74, 144, 217, 0.12), transparent 60%),
+        radial-gradient(900px 500px at 110% 10%, rgba(244, 196, 48, 0.16), transparent 60%),
+        linear-gradient(180deg, var(--bg-base), var(--bg-accent));
     color: var(--color-dark);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: 0.01em;
 }
 
 /* City selector dropdown */
@@ -306,7 +326,11 @@ html.sidebar-collapsed .sidebar {
     width: calc(100% - var(--sidebar-width));
     min-height: 100vh;
     transition: all 0.3s ease;
-    background-color: var(--color-light);
+    background-color: transparent;
+}
+
+.container-fluid {
+    animation: fadeIn 0.35s ease-out;
 }
 
 body.sidebar-collapsed .content,
@@ -333,8 +357,9 @@ html.sidebar-collapsed body .content {
 
 /* Navbar */
 .navbar {
-    background-color: var(--color-white) !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
 .sidebar-toggle-btn {
@@ -384,15 +409,16 @@ html.sidebar-collapsed body .content {
 /* Cards */
 .card {
     border: none;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-soft);
     margin-bottom: 1.5rem;
+    background-color: var(--bg-surface);
 }
 
 
 .card-header {
-    background-color: var(--color-white);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    background-color: transparent;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
     font-weight: 600;
 }
 
@@ -433,8 +459,8 @@ html.sidebar-collapsed body .content {
 
 /* Buttons */
 .btn {
-    border-radius: 6px;
-    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    padding: 0.55rem 1.25rem;
     font-weight: 500;
     transition: all 0.2s ease;
 }
@@ -445,18 +471,29 @@ html.sidebar-collapsed body .content {
 }
 
 .btn-primary:hover {
-    background-color: #152a45;
-    border-color: #152a45;
+    background-color: #162c4d;
+    border-color: #162c4d;
+}
+
+.btn-outline-secondary {
+    border-color: rgba(15, 23, 42, 0.2);
+    color: var(--color-dark);
+}
+
+.btn-outline-secondary:hover {
+    background-color: rgba(15, 23, 42, 0.06);
+    border-color: rgba(15, 23, 42, 0.3);
 }
 
 /* Tables */
 .table {
-    background-color: var(--color-white);
+    background-color: var(--bg-surface);
+    border-radius: var(--radius-sm);
 }
 
 .table thead th {
-    background-color: var(--color-light);
-    border-bottom: 2px solid var(--color-primary);
+    background-color: rgba(30, 58, 95, 0.06);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.12);
     font-weight: 600;
     font-size: 0.85rem;
     text-transform: uppercase;
@@ -494,22 +531,23 @@ html.sidebar-collapsed body .content {
 
 .form-control,
 .form-select {
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    padding: 0.6rem 0.9rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    padding: 0.65rem 1rem;
+    background-color: var(--bg-surface);
 }
 
 .form-control:focus,
 .form-select:focus {
     border-color: var(--color-secondary);
-    box-shadow: 0 0 0 0.2rem rgba(74, 144, 217, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(74, 144, 217, 0.2);
 }
 
 /* Modals */
 .modal-content {
-    border-radius: 10px;
+    border-radius: var(--radius-lg);
     border: none;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-card);
 }
 
 .modal-header {
@@ -524,13 +562,13 @@ html.sidebar-collapsed body .content {
 
 /* Tabs */
 .nav-tabs {
-    border-bottom: 2px solid var(--color-primary);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.2);
 }
 
 .nav-tabs .nav-link {
     color: var(--color-gray);
     border: none;
-    border-bottom: 3px solid transparent;
+    border-bottom: 2px solid transparent;
     font-weight: 500;
     transition: all 0.2s ease;
 }
@@ -545,6 +583,15 @@ html.sidebar-collapsed body .content {
     color: var(--color-primary);
     font-weight: 600;
     background-color: transparent;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 /* Utilities */
