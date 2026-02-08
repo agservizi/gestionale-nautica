@@ -6,18 +6,26 @@ require_once __DIR__ . '/../includes/header.php';
 
 // Ottieni statistiche
 $anno_corrente = date('Y');
-$stats = getStatisticheDashboard($anno_corrente);
+$anni = range(getAppYearStart(), date('Y') + 1);
+$periodo = $_GET['periodo'] ?? 'auto';
+$anno_selezionato = (int)($_GET['anno'] ?? $anno_corrente);
+$stats = getStatisticheDashboard($anno_selezionato);
 $useAllTime = false;
 
-if ((int)$stats['totale_pratiche'] === 0 && (float)$stats['entrate_anno'] == 0.0 && (float)$stats['uscite_anno'] == 0.0) {
-    $statsAll = getStatisticheDashboardAllTime();
-    if ((int)$statsAll['totale_pratiche'] > 0 || (float)$statsAll['entrate_anno'] != 0.0 || (float)$statsAll['uscite_anno'] != 0.0) {
-        $stats = $statsAll;
-        $useAllTime = true;
+if ($periodo === 'tutti') {
+    $stats = getStatisticheDashboardAllTime();
+    $useAllTime = true;
+} elseif ($periodo === 'auto') {
+    if ((int)$stats['totale_pratiche'] === 0 && (float)$stats['entrate_anno'] == 0.0 && (float)$stats['uscite_anno'] == 0.0) {
+        $statsAll = getStatisticheDashboardAllTime();
+        if ((int)$statsAll['totale_pratiche'] > 0 || (float)$statsAll['entrate_anno'] != 0.0 || (float)$statsAll['uscite_anno'] != 0.0) {
+            $stats = $statsAll;
+            $useAllTime = true;
+        }
     }
 }
 
-$periodoLabel = $useAllTime ? 'tutti gli anni' : $anno_corrente;
+$periodoLabel = $useAllTime ? 'tutti gli anni' : $anno_selezionato;
 $currentUser = currentUser();
 
 // Paginazione dashboard
@@ -50,6 +58,29 @@ function dashboardPageLink($param, $page) {
                     </h2>
                 <?php endif; ?>
                 <p class="text-muted">Periodo: <?php echo $periodoLabel; ?></p>
+                <form method="GET" class="row g-2 align-items-end mt-2">
+                    <div class="col-sm-4 col-md-3">
+                        <label class="form-label">Periodo</label>
+                        <select name="periodo" class="form-select">
+                            <option value="auto" <?php echo $periodo === 'auto' ? 'selected' : ''; ?>>Automatico</option>
+                            <option value="anno" <?php echo $periodo === 'anno' ? 'selected' : ''; ?>>Anno</option>
+                            <option value="tutti" <?php echo $periodo === 'tutti' ? 'selected' : ''; ?>>Tutti gli anni</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-4 col-md-3">
+                        <label class="form-label">Anno</label>
+                        <select name="anno" class="form-select">
+                            <?php foreach ($anni as $anno): ?>
+                                <option value="<?php echo $anno; ?>" <?php echo $anno_selezionato == $anno ? 'selected' : ''; ?>>
+                                    <?php echo $anno; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-sm-4 col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Applica</button>
+                    </div>
+                </form>
             </div>
         </div>
         
@@ -176,7 +207,7 @@ function dashboardPageLink($param, $page) {
                     </div>
                     <div class="card-body">
                         <?php
-                        $ultime_pratiche_all = $useAllTime ? getPratiche() : getPratiche(['anno' => $anno_corrente]);
+                        $ultime_pratiche_all = $useAllTime ? getPratiche() : getPratiche(['anno' => $anno_selezionato]);
                         $page_pratiche = max(1, (int)($_GET['p_pratiche'] ?? 1));
                         $total_pratiche = count($ultime_pratiche_all);
                         $pages_pratiche = (int)ceil($total_pratiche / $perPageDashboard);
@@ -227,7 +258,7 @@ function dashboardPageLink($param, $page) {
                     </div>
                     <div class="card-body">
                         <?php
-                        $ultimi_pagamenti_all = $useAllTime ? getPagamenti() : getPagamenti(['anno' => $anno_corrente]);
+                        $ultimi_pagamenti_all = $useAllTime ? getPagamenti() : getPagamenti(['anno' => $anno_selezionato]);
                         $page_pagamenti = max(1, (int)($_GET['p_pagamenti'] ?? 1));
                         $total_pagamenti = count($ultimi_pagamenti_all);
                         $pages_pagamenti = (int)ceil($total_pagamenti / $perPageDashboard);
