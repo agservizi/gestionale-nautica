@@ -116,17 +116,20 @@ $selectedClienteId = !empty($_GET['cliente_id']) ? (int)$_GET['cliente_id'] : nu
     <?php include __DIR__ . '/../includes/navbar.php'; ?>
 
     <div class="container-fluid py-4">
-        <div class="row mb-4">
-            <div class="col-12 d-flex justify-content-between align-items-center">
+        <section class="page-hero page-hero-light">
+            <div class="d-flex flex-column flex-lg-row justify-content-between gap-4">
                 <div>
-                    <h1 class="h3 mb-0">Nuova Pratica</h1>
-                    <p class="text-muted mb-0">Crea una nuova pratica cliente</p>
+                    <div class="page-hero__eyebrow">Nuova apertura</div>
+                    <h1 class="page-hero__title">Nuova Pratica</h1>
+                    <p class="page-hero__subtitle">Imposta anagrafica di riferimento, stato iniziale e dati economici in un flusso piu leggibile e progressivo.</p>
                 </div>
-                <a href="/pages/pratiche.php" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Torna alle Pratiche
-                </a>
+                <div class="quick-actions align-self-start">
+                    <a href="/pages/pratiche.php" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Torna alle Pratiche
+                    </a>
+                </div>
             </div>
-        </div>
+        </section>
 
         <?php if($message): ?>
             <div class="alert alert-<?php echo $message_type; ?> alert-dismissible fade show" role="alert">
@@ -135,12 +138,27 @@ $selectedClienteId = !empty($_GET['cliente_id']) ? (int)$_GET['cliente_id'] : nu
             </div>
         <?php endif; ?>
 
-        <div class="card">
+        <div class="section-nav" data-section-nav>
+            <button type="button" class="section-nav__link active" data-target-section="pratica-base">Base</button>
+            <button type="button" class="section-nav__link" data-target-section="pratica-dettagli">Dettagli pratica</button>
+            <button type="button" class="section-nav__link" data-target-section="pratica-pagamento">Pagamento</button>
+        </div>
+
+        <div class="card section-card">
             <div class="card-body">
-                <form method="POST" id="formPratica">
+                <form method="POST" id="formPratica" data-dirty-track>
                     <?php echo csrf_input(); ?>
                     <input type="hidden" name="action" value="create">
 
+                    <div class="form-layout">
+                    <section id="pratica-base">
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Base</div>
+                                <h6 class="section-card__title">Cliente, apertura e stato</h6>
+                                <p class="section-card__hint">Se il cliente non esiste ancora, puoi crearlo senza uscire dalla pagina.</p>
+                            </div>
+                        </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Cliente *</label>
@@ -172,7 +190,16 @@ $selectedClienteId = !empty($_GET['cliente_id']) ? (int)$_GET['cliente_id'] : nu
                             </select>
                         </div>
                     </div>
+                    </section>
 
+                    <section id="pratica-dettagli">
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Dettagli</div>
+                                <h6 class="section-card__title">Tipo pratica e dati operativi</h6>
+                                <p class="section-card__hint">I campi avanzati si adattano al tipo pratica del cliente selezionato.</p>
+                            </div>
+                        </div>
                     <div class="row mb-3">
                         <div class="col-md-8">
                             <label class="form-label">Tipo Pratica</label>
@@ -284,10 +311,18 @@ $selectedClienteId = !empty($_GET['cliente_id']) ? (int)$_GET['cliente_id'] : nu
                         <label class="form-label">Note</label>
                         <textarea name="note" class="form-control" rows="2"></textarea>
                     </div>
+                    </section>
 
+                    <section id="pratica-pagamento">
                     <hr>
 
-                    <h6>Pagamento Immediato (opzionale)</h6>
+                    <div class="section-card__header">
+                        <div>
+                            <div class="section-card__eyebrow">Economico</div>
+                            <h6 class="section-card__title">Pagamento Immediato (opzionale)</h6>
+                            <p class="section-card__hint">Se incassi gia qualcosa in apertura, registralo qui per non duplicare il lavoro dopo.</p>
+                        </div>
+                    </div>
                     <div class="row mb-3">
                         <div class="col-md-4">
                             <label class="form-label">Importo</label>
@@ -314,13 +349,20 @@ $selectedClienteId = !empty($_GET['cliente_id']) ? (int)$_GET['cliente_id'] : nu
                         <label class="form-label">Note Pagamento</label>
                         <input type="text" name="pagamento_note" class="form-control">
                     </div>
+                    </section>
 
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">Crea Pratica</button>
-                        <a href="/pages/pratiche.php" class="btn btn-outline-secondary">Annulla</a>
-                        <?php if($createdId): ?>
-                            <a href="/pages/pratica_dettaglio.php?id=<?php echo $createdId; ?>" class="btn btn-success">Apri Dettaglio</a>
-                        <?php endif; ?>
+                    <div class="sticky-form-actions">
+                        <div class="sticky-form-actions__meta">
+                            Salva quando hai impostato cliente, data e stato. Gli altri dettagli possono essere completati anche in seguito.
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="submit" class="btn btn-primary">Crea Pratica</button>
+                            <a href="/pages/pratiche.php" class="btn btn-outline-secondary">Annulla</a>
+                            <?php if($createdId): ?>
+                                <a href="/pages/pratica_dettaglio.php?id=<?php echo $createdId; ?>" class="btn btn-success">Apri Dettaglio</a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                     </div>
                 </form>
             </div>

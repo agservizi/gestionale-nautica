@@ -24,6 +24,8 @@ $agenda = getAgendaGuide(['cliente_id' => $cliente_id]);
 // Calcola totali
 $totale_speso = array_sum(array_column($pagamenti, 'importo'));
 $numero_pratiche = count($pratiche);
+$clienteAlerts = getClienteAlerts($cliente);
+$clienteTimeline = getClienteTimeline($cliente_id, 20);
 ?>
 
 <?php include __DIR__ . '/../includes/sidebar.php'; ?>
@@ -94,6 +96,63 @@ $numero_pratiche = count($pratiche);
                 </div>
             </div>
         </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-xl-5">
+                <div class="card section-card h-100">
+                    <div class="card-body">
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Stato cliente</div>
+                                <h2 class="section-card__title">Scadenze e presidio documentale</h2>
+                                <p class="section-card__hint">Così capisci subito se il cliente e pronto o richiede un richiamo.</p>
+                            </div>
+                        </div>
+                        <?php if (empty($clienteAlerts)): ?>
+                            <p class="text-muted mb-0">Nessuna scadenza imminente registrata.</p>
+                        <?php else: ?>
+                            <div class="insight-list">
+                                <?php foreach ($clienteAlerts as $alert): ?>
+                                    <div class="insight-item insight-item--<?php echo htmlspecialchars($alert['tone']); ?>">
+                                        <span class="insight-item__icon"><i class="bi bi-card-text"></i></span>
+                                        <span class="insight-item__body">
+                                            <strong><?php echo htmlspecialchars($alert['title']); ?></strong>
+                                            <small><?php echo htmlspecialchars($alert['message']); ?></small>
+                                        </span>
+                                        <span class="insight-item__meta"><?php echo htmlspecialchars(formatDate($alert['date'])); ?></span>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-7">
+                <div class="card section-card h-100">
+                    <div class="card-body">
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Ultimi eventi</div>
+                                <h2 class="section-card__title">Timeline rapida cliente</h2>
+                                <p class="section-card__hint">Pratiche, pagamenti e guide piu recenti, senza dover aprire ogni sezione.</p>
+                            </div>
+                        </div>
+                        <div class="timeline timeline--compact">
+                            <?php foreach (array_slice($clienteTimeline, 0, 5) as $event): ?>
+                                <div class="timeline__item">
+                                    <span class="timeline__dot timeline__dot--<?php echo htmlspecialchars($event['tone']); ?>"></span>
+                                    <div class="timeline__body">
+                                        <strong><?php echo htmlspecialchars($event['title']); ?></strong>
+                                        <small><?php echo htmlspecialchars($event['meta']); ?></small>
+                                    </div>
+                                    <span class="timeline__date"><?php echo htmlspecialchars(formatDate($event['date'], 'd/m/Y H:i')); ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         
         <!-- Tabs -->
         <ul class="nav nav-tabs mb-4" id="clienteTabs" role="tablist">
@@ -113,6 +172,12 @@ $numero_pratiche = count($pratiche);
                 <button class="nav-link" id="agenda-tab" data-bs-toggle="tab" 
                         data-bs-target="#agenda" type="button">
                     <i class="bi bi-calendar3"></i> Guide (<?php echo count($agenda); ?>)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="timeline-tab" data-bs-toggle="tab" 
+                        data-bs-target="#timeline" type="button">
+                    <i class="bi bi-clock"></i> Timeline (<?php echo count($clienteTimeline); ?>)
                 </button>
             </li>
         </ul>
@@ -272,6 +337,34 @@ $numero_pratiche = count($pratiche);
                                         <?php endforeach; ?>
                                     </tbody>
                                 </table>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="timeline">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Timeline cliente</h5>
+                    </div>
+                    <div class="card-body">
+                        <?php if(empty($clienteTimeline)): ?>
+                            <p class="text-muted">Nessun evento disponibile per questo cliente.</p>
+                        <?php else: ?>
+                            <div class="timeline">
+                                <?php foreach($clienteTimeline as $event): ?>
+                                    <div class="timeline__item">
+                                        <span class="timeline__dot timeline__dot--<?php echo htmlspecialchars($event['tone']); ?>"></span>
+                                        <div class="timeline__body">
+                                            <strong><?php echo htmlspecialchars($event['title']); ?></strong>
+                                            <?php if(!empty($event['meta'])): ?>
+                                                <small><?php echo htmlspecialchars($event['meta']); ?></small>
+                                            <?php endif; ?>
+                                        </div>
+                                        <span class="timeline__date"><?php echo htmlspecialchars(formatDate($event['date'], 'd/m/Y H:i')); ?></span>
+                                    </div>
+                                <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
                     </div>

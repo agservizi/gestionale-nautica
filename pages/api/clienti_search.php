@@ -22,16 +22,6 @@ if ($q === '') {
     exit;
 }
 
-$clienti = getClienti($q, $limit, 0);
-$results = [];
-foreach ($clienti as $cliente) {
-    $results[] = [
-        'id' => $cliente['id'],
-        'nome' => $cliente['nome'],
-        'cognome' => $cliente['cognome'],
-        'email' => $cliente['email'] ?? '',
-        'codice_fiscale' => $cliente['codice_fiscale'] ?? '',
-    ];
-}
+$results = searchGlobalEntities($q, $limit);
 
 echo json_encode(['results' => $results], JSON_UNESCAPED_UNICODE);

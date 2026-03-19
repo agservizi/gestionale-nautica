@@ -34,6 +34,9 @@ if (function_exists('runScheduledJobs')) {
 
 $current_page = basename($_SERVER['PHP_SELF'], '.php');
 $notifications = function_exists('getNotificationSummary') ? getNotificationSummary() : null;
+$uiNotifications = function_exists('getOperationalAlerts') && !(function_exists('isDeveloper') && isDeveloper())
+    ? getOperationalAlerts(6)
+    : [];
 
 $defaultTheme = [
     'color_primary' => '#1e3a5f',

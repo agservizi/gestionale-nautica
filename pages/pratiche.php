@@ -34,6 +34,27 @@ if(!empty($_GET['mese'])) $filters['mese'] = $_GET['mese'];
 if(!empty($_GET['cliente_id'])) $filters['cliente_id'] = $_GET['cliente_id'];
 
 $pratiche = getPratiche($filters);
+$praticheCount = count($pratiche);
+$praticheAperte = 0;
+$praticheCompletate = 0;
+$praticheScoperte = 0;
+foreach ($pratiche as $pratica) {
+    if (($pratica['stato'] ?? '') === 'Aperta' || ($pratica['stato'] ?? '') === 'In corso') {
+        $praticheAperte++;
+    }
+    if (($pratica['stato'] ?? '') === 'Completata') {
+        $praticheCompletate++;
+    }
+    if ((float)($pratica['residuo'] ?? 0) > 0) {
+        $praticheScoperte++;
+    }
+}
+$activeFilterChips = [];
+if (!empty($_GET['stato'])) $activeFilterChips[] = 'Stato: ' . $_GET['stato'];
+if (!empty($_GET['tipo_pratica'])) $activeFilterChips[] = 'Tipo: ' . $_GET['tipo_pratica'];
+if (!empty($_GET['anno'])) $activeFilterChips[] = 'Anno: ' . $_GET['anno'];
+if (!empty($_GET['mese'])) $activeFilterChips[] = 'Mese: ' . date('F', mktime(0, 0, 0, (int)$_GET['mese'], 1));
+if (!empty($_GET['cliente_id'])) $activeFilterChips[] = 'Cliente selezionato';
 
 // Anni disponibili
 $anni = range(getAppYearStart(), date('Y') + 1);
@@ -57,18 +78,58 @@ $anni = range(getAppYearStart(), date('Y') + 1);
             </div>
         <?php endif; ?>
         
-        <div class="row mb-4">
-            <div class="col-12 d-flex justify-content-between align-items-center">
-                <h1 class="h3">Pratiche (<?php echo count($pratiche); ?>)</h1>
-                <a class="btn btn-primary" href="/pages/pratica_form.php">
-                    <i class="bi bi-plus-lg"></i> Nuova Pratica
-                </a>
+        <section class="page-hero page-hero-light">
+            <div class="d-flex flex-column flex-lg-row justify-content-between gap-4">
+                <div>
+                    <div class="page-hero__eyebrow">Flusso pratiche</div>
+                    <h1 class="page-hero__title">Pratiche</h1>
+                    <p class="page-hero__subtitle">Controlla stato, esposizione economica e avanzamento delle pratiche senza perdere il contesto dei filtri applicati.</p>
+                    <div class="page-hero__meta">
+                        <span class="page-meta-pill"><i class="bi bi-file-earmark-text"></i> Totali: <?php echo $praticheCount; ?></span>
+                        <span class="page-meta-pill"><i class="bi bi-clock"></i> Aperte/In corso: <?php echo $praticheAperte; ?></span>
+                        <span class="page-meta-pill"><i class="bi bi-credit-card"></i> Con residuo: <?php echo $praticheScoperte; ?></span>
+                    </div>
+                </div>
+                <div class="quick-actions align-self-start">
+                    <a class="btn btn-primary" href="/pages/pratica_form.php">
+                        <i class="bi bi-plus-lg"></i> Nuova Pratica
+                    </a>
+                    <a class="btn btn-outline-secondary" href="/pages/clienti.php">
+                        <i class="bi bi-people"></i> Vai ai clienti
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <div class="stats-strip">
+            <div class="stats-strip__item">
+                <span class="stats-strip__label">Totale viste</span>
+                <span class="stats-strip__value"><?php echo $praticheCount; ?></span>
+            </div>
+            <div class="stats-strip__item">
+                <span class="stats-strip__label">Aperte/In corso</span>
+                <span class="stats-strip__value"><?php echo $praticheAperte; ?></span>
+            </div>
+            <div class="stats-strip__item">
+                <span class="stats-strip__label">Completate</span>
+                <span class="stats-strip__value"><?php echo $praticheCompletate; ?></span>
+            </div>
+            <div class="stats-strip__item">
+                <span class="stats-strip__label">Residuo da recuperare</span>
+                <span class="stats-strip__value"><?php echo $praticheScoperte; ?></span>
             </div>
         </div>
         
         <!-- Filtri -->
-        <div class="card mb-4">
+        <div class="card mb-4 section-card">
             <div class="card-body">
+                <div class="section-card__header">
+                    <div>
+                        <div class="section-card__eyebrow">Filtri</div>
+                        <h2 class="section-card__title">Restringi la lista in pochi click</h2>
+                        <p class="section-card__hint">Applica solo i filtri utili e azzera tutto rapidamente quando vuoi tornare alla vista completa.</p>
+                    </div>
+                </div>
                 <form method="GET" class="row g-3">
                     <div class="col-md-3">
                         <label class="form-label">Stato</label>
@@ -118,12 +179,37 @@ $anni = range(getAppYearStart(), date('Y') + 1);
                         <button type="submit" class="btn btn-primary w-100">Filtra</button>
                     </div>
                 </form>
+                <div class="filter-toolbar">
+                    <div class="filter-chips">
+                        <?php if (empty($activeFilterChips)): ?>
+                            <span class="table-row-muted">Nessun filtro attivo. Stai vedendo l'elenco completo.</span>
+                        <?php else: ?>
+                            <?php foreach ($activeFilterChips as $chip): ?>
+                                <span class="filter-chip">
+                                    <i class="bi bi-info-circle"></i> <?php echo htmlspecialchars($chip); ?>
+                                </span>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                    <?php if (!empty($activeFilterChips)): ?>
+                        <a href="/pages/pratiche.php" class="btn btn-outline-secondary btn-sm">Azzera filtri</a>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
         
         <!-- Tabella Pratiche -->
-        <div class="card">
+        <div class="card section-card">
             <div class="card-body">
+                <div class="data-table-header">
+                    <div>
+                        <div class="section-card__eyebrow">Elenco</div>
+                        <h2 class="section-card__title">Pratiche trovate</h2>
+                    </div>
+                    <div class="table-row-muted">
+                        <?php echo $praticheCount; ?> record mostrati
+                    </div>
+                </div>
                 <?php $ricevutaModals = []; ?>
                 <div class="table-responsive">
                     <table class="table table-hover">

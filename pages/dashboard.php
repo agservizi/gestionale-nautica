@@ -27,6 +27,11 @@ if ($periodo === 'tutti') {
 
 $periodoLabel = $useAllTime ? 'tutti gli anni' : $anno_selezionato;
 $currentUser = currentUser();
+$todayGuides = (int)($notifications['today_guides'] ?? 0);
+$tomorrowGuides = (int)($notifications['tomorrow_guides'] ?? 0);
+$scoperte = (int)($notifications['pratiche_scoperte'] ?? 0);
+$documentiInScadenza = (int)($notifications['documenti_in_scadenza'] ?? 0);
+$operationalAlerts = getOperationalAlerts(6);
 
 // Paginazione dashboard
 $perPageDashboard = 5;
@@ -48,39 +53,188 @@ function dashboardPageLink($param, $page) {
     <!-- Page Content -->
     <div class="container-fluid py-4">
         
+        <section class="page-hero">
+            <div class="d-flex flex-column flex-lg-row justify-content-between gap-4">
+                <div>
+                    <div class="page-hero__eyebrow">Panoramica operativa</div>
+                    <h1 class="page-hero__title">Dashboard</h1>
+                    <?php if ($currentUser): ?>
+                        <p class="page-hero__subtitle">Ciao <?php echo htmlspecialchars($currentUser['username']); ?>, qui trovi il quadro rapido dell'operativita e le prossime azioni da seguire.</p>
+                    <?php else: ?>
+                        <p class="page-hero__subtitle">Controlla numeri chiave, pratiche recenti e attivita imminenti in un solo colpo d'occhio.</p>
+                    <?php endif; ?>
+                    <div class="page-hero__meta">
+                        <span class="page-meta-pill"><i class="bi bi-calendar3"></i> Periodo: <?php echo htmlspecialchars((string)$periodoLabel); ?></span>
+                        <span class="page-meta-pill"><i class="bi bi-credit-card"></i> Saldo: <?php echo formatMoney($stats['saldo_anno']); ?></span>
+                        <span class="page-meta-pill"><i class="bi bi-exclamation-triangle"></i> Scoperte: <?php echo $scoperte; ?></span>
+                        <span class="page-meta-pill"><i class="bi bi-card-text"></i> Documenti in scadenza: <?php echo $documentiInScadenza; ?></span>
+                    </div>
+                </div>
+                <div class="quick-actions align-self-start">
+                    <a href="/pages/pratica_form.php" class="btn btn-light">
+                        <i class="bi bi-plus-lg"></i> Nuova pratica
+                    </a>
+                    <a href="/pages/cliente_form.php" class="btn btn-outline-light">
+                        <i class="bi bi-people"></i> Nuovo cliente
+                    </a>
+                    <a href="/pages/agenda.php" class="btn btn-outline-light">
+                        <i class="bi bi-calendar3"></i> Agenda
+                    </a>
+                </div>
+            </div>
+        </section>
+
         <div class="row mb-4">
             <div class="col-12">
-                <h1 class="h3">Dashboard</h1>
-                <?php if ($currentUser): ?>
-                    <h2 class="h4 d-flex align-items-center gap-2 fw-semibold text-primary">
-                        <i class="bi bi-hand-thumbs-up"></i>
-                        <span>Ciao, <?php echo htmlspecialchars($currentUser['username']); ?>.</span>
-                    </h2>
-                <?php endif; ?>
-                <p class="text-muted">Periodo: <?php echo $periodoLabel; ?></p>
-                <form method="GET" class="row g-2 align-items-end mt-2">
-                    <div class="col-sm-4 col-md-3">
-                        <label class="form-label">Periodo</label>
-                        <select name="periodo" class="form-select">
-                            <option value="auto" <?php echo $periodo === 'auto' ? 'selected' : ''; ?>>Automatico</option>
-                            <option value="anno" <?php echo $periodo === 'anno' ? 'selected' : ''; ?>>Anno</option>
-                            <option value="tutti" <?php echo $periodo === 'tutti' ? 'selected' : ''; ?>>Tutti gli anni</option>
-                        </select>
+                <div class="stats-strip">
+                    <div class="stats-strip__item">
+                        <span class="stats-strip__label">Guide oggi</span>
+                        <span class="stats-strip__value"><?php echo $todayGuides; ?></span>
                     </div>
-                    <div class="col-sm-4 col-md-3">
-                        <label class="form-label">Anno</label>
-                        <select name="anno" class="form-select">
-                            <?php foreach ($anni as $anno): ?>
-                                <option value="<?php echo $anno; ?>" <?php echo $anno_selezionato == $anno ? 'selected' : ''; ?>>
-                                    <?php echo $anno; ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                    <div class="stats-strip__item">
+                        <span class="stats-strip__label">Guide domani</span>
+                        <span class="stats-strip__value"><?php echo $tomorrowGuides; ?></span>
                     </div>
-                    <div class="col-sm-4 col-md-2">
-                        <button type="submit" class="btn btn-primary w-100">Applica</button>
+                    <div class="stats-strip__item">
+                        <span class="stats-strip__label">Pratiche aperte</span>
+                        <span class="stats-strip__value"><?php echo (int)$stats['pratiche_aperte']; ?></span>
                     </div>
-                </form>
+                    <div class="stats-strip__item">
+                        <span class="stats-strip__label">Entrate periodo</span>
+                        <span class="stats-strip__value"><?php echo formatMoney($stats['entrate_anno']); ?></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4 g-4">
+            <div class="col-xl-7" id="alert-operativi">
+                <div class="card section-card h-100">
+                    <div class="card-body">
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Filtro periodo</div>
+                                <h2 class="section-card__title">Cambia rapidamente la lettura dei dati</h2>
+                                <p class="section-card__hint">Usa il periodo automatico per lavorare senza dover cambiare anno quando non ci sono dati nel periodo selezionato.</p>
+                            </div>
+                        </div>
+                        <form method="GET" class="row g-2 align-items-end mt-2">
+                            <div class="col-sm-4 col-md-3">
+                                <label class="form-label">Periodo</label>
+                                <select name="periodo" class="form-select">
+                                    <option value="auto" <?php echo $periodo === 'auto' ? 'selected' : ''; ?>>Automatico</option>
+                                    <option value="anno" <?php echo $periodo === 'anno' ? 'selected' : ''; ?>>Anno</option>
+                                    <option value="tutti" <?php echo $periodo === 'tutti' ? 'selected' : ''; ?>>Tutti gli anni</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-4 col-md-3">
+                                <label class="form-label">Anno</label>
+                                <select name="anno" class="form-select">
+                                    <?php foreach ($anni as $anno): ?>
+                                        <option value="<?php echo $anno; ?>" <?php echo $anno_selezionato == $anno ? 'selected' : ''; ?>>
+                                            <?php echo $anno; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="col-sm-4 col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">Applica</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-5">
+                <div class="card section-card h-100">
+                    <div class="card-body">
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Focus</div>
+                                <h2 class="section-card__title">Da presidiare oggi</h2>
+                                <p class="section-card__hint">Azioni rapide sulle aree che richiedono piu attenzione.</p>
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <a href="/pages/pratiche.php" class="btn btn-outline-secondary text-start">
+                                <i class="bi bi-file-earmark-text"></i> Verifica pratiche e residui
+                            </a>
+                            <a href="/pages/agenda.php" class="btn btn-outline-secondary text-start">
+                                <i class="bi bi-calendar3"></i> Controlla le guide in calendario
+                            </a>
+                            <a href="/pages/pagamenti.php" class="btn btn-outline-secondary text-start">
+                                <i class="bi bi-credit-card"></i> Registra incassi e saldi
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4 g-4">
+            <div class="col-xl-7">
+                <div class="card section-card h-100">
+                    <div class="card-body">
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Alert operativi</div>
+                                <h2 class="section-card__title">Scadenze e priorita da presidiare</h2>
+                                <p class="section-card__hint">Un punto unico per vedere guide vicine, residui aperti e documenti da controllare.</p>
+                            </div>
+                        </div>
+                        <?php if (empty($operationalAlerts)): ?>
+                            <p class="text-muted mb-0">Nessun alert aperto in questo momento.</p>
+                        <?php else: ?>
+                            <div class="insight-list">
+                                <?php foreach ($operationalAlerts as $alert): ?>
+                                    <a href="<?php echo htmlspecialchars($alert['href']); ?>" class="insight-item insight-item--<?php echo htmlspecialchars($alert['tone']); ?>">
+                                        <span class="insight-item__icon"><i class="bi bi-<?php echo htmlspecialchars($alert['icon']); ?>"></i></span>
+                                        <span class="insight-item__body">
+                                            <strong><?php echo htmlspecialchars($alert['title']); ?></strong>
+                                            <small><?php echo htmlspecialchars($alert['description']); ?></small>
+                                        </span>
+                                        <span class="insight-item__meta"><?php echo htmlspecialchars($alert['meta']); ?></span>
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-5">
+                <div class="card section-card h-100">
+                    <div class="card-body">
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Routine consigliata</div>
+                                <h2 class="section-card__title">Ordine ideale di lavoro</h2>
+                                <p class="section-card__hint">Un flusso semplice per trasformare dashboard e dati in azioni concrete.</p>
+                            </div>
+                        </div>
+                        <div class="workflow-mini">
+                            <div class="workflow-mini__step">
+                                <span>1</span>
+                                <div>
+                                    <strong>Apri gli alert urgenti</strong>
+                                    <small>Scadenze e guide vicine prima di tutto.</small>
+                                </div>
+                            </div>
+                            <div class="workflow-mini__step">
+                                <span>2</span>
+                                <div>
+                                    <strong>Chiudi i residui</strong>
+                                    <small>Registra incassi o pianifica follow-up.</small>
+                                </div>
+                            </div>
+                            <div class="workflow-mini__step">
+                                <span>3</span>
+                                <div>
+                                    <strong>Completa le pratiche bloccate</strong>
+                                    <small>Controlla allegati, scadenze e stato pratica.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         

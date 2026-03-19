@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
     swapBootstrapIconsToFontAwesome();
     initSidebar();
     initSearch();
+    initUiNotifications();
     initTooltips();
     initDateInputs();
     initClienteTipoPratica();
@@ -15,6 +16,8 @@ document.addEventListener('DOMContentLoaded', function () {
     initAgendaDragDrop();
     initConsentBanner();
     initGlobalInputFormatting();
+    initSectionNav();
+    initDirtyForms();
 });
 
 // ============================================
@@ -83,6 +86,8 @@ function swapBootstrapIconsToFontAwesome() {
         'bi-bar-chart': 'fa-chart-column',
         'bi-pie-chart': 'fa-chart-pie',
         'bi-cookie': 'fa-cookie-bite'
+        ,
+        'bi-bell': 'fa-bell'
     };
 
     document.querySelectorAll('i.bi').forEach(icon => {
@@ -105,10 +110,8 @@ function swapBootstrapIconsToFontAwesome() {
 // ============================================
 function initSidebar() {
     const sidebar = document.getElementById('sidebar');
-    const sidebarCollapse = document.getElementById('sidebarCollapse');
-    const sidebarCollapseTop = document.getElementById('sidebarCollapseTop');
     const overlay = document.getElementById('sidebarOverlay');
-    const mobileBreakpoint = 992;
+    const mobileBreakpoint = 860;
 
     if (!sidebar) {
         return;
@@ -167,7 +170,6 @@ function initSidebar() {
         const btnTop = e.target.closest('#sidebarCollapseTop');
         const btnSide = e.target.closest('#sidebarCollapse');
         if (btnTop || btnSide) {
-            console.log('[Sidebar] capture click', { target: e.target });
             e.preventDefault();
             toggleSidebar();
         }
@@ -304,6 +306,13 @@ function initSearch() {
             resultsPanel.innerHTML = '';
         };
 
+        const escapeHtml = (value) => String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+
         const renderResults = (results) => {
             if (!resultsPanel) return;
             if (!results || results.length === 0) {
@@ -312,16 +321,28 @@ function initSearch() {
                 return;
             }
             resultsPanel.innerHTML = results.map(item => {
-                const label = `${item.cognome} ${item.nome}`.trim();
-                const meta = [item.email, item.codice_fiscale].filter(Boolean).join(' · ');
+                const label = escapeHtml(item.title || '');
+                const meta = escapeHtml(item.meta || '');
+                const typeLabel = escapeHtml(item.type_label || 'Risultato');
+                const href = escapeHtml(item.url || '#');
+                const icon = escapeHtml(item.icon || 'search');
                 return `
-                    <a href="${apiBase}/cliente_dettaglio.php?id=${item.id}" class="list-group-item list-group-item-action">
-                        <div class="fw-semibold">${label}</div>
-                        ${meta ? `<div class=\"small text-muted\">${meta}</div>` : ''}
+                    <a href="${href}" class="list-group-item list-group-item-action search-result-item">
+                        <div class="search-result-item__icon">
+                            <i class="bi bi-${icon}"></i>
+                        </div>
+                        <div class="search-result-item__body">
+                            <div class="search-result-item__top">
+                                <div class="fw-semibold">${label}</div>
+                                <span class="search-result-item__type">${typeLabel}</span>
+                            </div>
+                            ${meta ? `<div class="small text-muted">${meta}</div>` : ''}
+                        </div>
                     </a>
                 `;
             }).join('');
             resultsPanel.classList.add('show');
+            swapBootstrapIconsToFontAwesome();
         };
 
         const runSearch = async () => {
@@ -353,6 +374,79 @@ function initSearch() {
             }
         });
     }
+}
+
+function initSectionNav() {
+    const navs = document.querySelectorAll('[data-section-nav]');
+    navs.forEach(nav => {
+        const links = Array.from(nav.querySelectorAll('[data-target-section]'));
+        if (!links.length) return;
+
+        const sections = links
+            .map(link => document.getElementById(link.getAttribute('data-target-section')))
+            .filter(Boolean);
+
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                const id = link.getAttribute('data-target-section');
+                const target = document.getElementById(id);
+                if (!target) return;
+                const top = target.getBoundingClientRect().top + window.scrollY - 120;
+                window.scrollTo({ top, behavior: 'smooth' });
+            });
+        });
+
+        if (!('IntersectionObserver' in window) || !sections.length) {
+            return;
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            const visible = entries
+                .filter(entry => entry.isIntersecting)
+                .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+            if (!visible) return;
+            links.forEach(link => {
+                link.classList.toggle('active', link.getAttribute('data-target-section') === visible.target.id);
+            });
+        }, {
+            rootMargin: '-25% 0px -60% 0px',
+            threshold: [0.2, 0.4, 0.6]
+        });
+
+        sections.forEach(section => observer.observe(section));
+    });
+}
+
+function initDirtyForms() {
+    const forms = document.querySelectorAll('form[data-dirty-track]');
+    forms.forEach(form => {
+        let isDirty = false;
+        let submitted = false;
+
+        const setDirty = () => {
+            isDirty = true;
+            document.body.classList.add('form-dirty');
+        };
+
+        const clearDirty = () => {
+            isDirty = false;
+            document.body.classList.remove('form-dirty');
+        };
+
+        form.addEventListener('input', setDirty);
+        form.addEventListener('change', setDirty);
+        form.addEventListener('submit', () => {
+            submitted = true;
+            clearDirty();
+        });
+
+        window.addEventListener('beforeunload', (event) => {
+            if (!submitted && isDirty) {
+                event.preventDefault();
+                event.returnValue = '';
+            }
+        });
+    });
 }
 
 // ============================================
@@ -406,20 +500,60 @@ function formatDate(dateString) {
 // ALERT AUTO-DISMISS
 // ============================================
 function showAlert(message, type = 'success', duration = 3000) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
-    alertDiv.style.zIndex = '9999';
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
+    const tray = document.getElementById('appNotificationTray');
+    if (!tray) return;
 
-    document.body.appendChild(alertDiv);
+    const item = document.createElement('div');
+    item.className = `app-notification app-notification--${type}`;
+    const body = document.createElement('div');
+    body.className = 'app-notification__body';
 
-    setTimeout(() => {
-        alertDiv.classList.remove('show');
-        setTimeout(() => alertDiv.remove(), 150);
-    }, duration);
+    const title = document.createElement('strong');
+    title.textContent = type === 'danger' ? 'Attenzione' : 'Aggiornamento';
+
+    const text = document.createElement('span');
+    text.textContent = String(message ?? '');
+
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'app-notification__close';
+    close.setAttribute('aria-label', 'Chiudi notifica');
+    close.innerHTML = '&times;';
+
+    body.appendChild(title);
+    body.appendChild(text);
+    item.appendChild(body);
+    item.appendChild(close);
+
+    const removeItem = () => {
+        item.classList.add('is-leaving');
+        setTimeout(() => item.remove(), 220);
+    };
+
+    close.addEventListener('click', removeItem);
+    tray.appendChild(item);
+
+    setTimeout(removeItem, duration);
+}
+
+function initUiNotifications() {
+    const wrappers = document.querySelectorAll('[data-ui-notifications]');
+    wrappers.forEach(wrapper => {
+        const toggle = wrapper.querySelector('[data-ui-notifications-toggle]');
+        const panel = wrapper.querySelector('[data-ui-notifications-panel]');
+        if (!toggle || !panel) return;
+
+        toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            wrapper.classList.toggle('is-open');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!wrapper.contains(e.target)) {
+                wrapper.classList.remove('is-open');
+            }
+        });
+    });
 }
 
 // ============================================

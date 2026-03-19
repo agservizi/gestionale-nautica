@@ -75,17 +75,20 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
     <?php include __DIR__ . '/../includes/navbar.php'; ?>
 
     <div class="container-fluid py-4">
-        <div class="row mb-4">
-            <div class="col-12 d-flex justify-content-between align-items-center">
+        <section class="page-hero page-hero-light">
+            <div class="d-flex flex-column flex-lg-row justify-content-between gap-4">
                 <div>
-                    <h1 class="h3 mb-0"><?php echo $title; ?></h1>
-                    <p class="text-muted mb-0">Gestisci i dati del cliente</p>
+                    <div class="page-hero__eyebrow">Anagrafica cliente</div>
+                    <h1 class="page-hero__title"><?php echo $title; ?></h1>
+                    <p class="page-hero__subtitle">Compila i dati in sezioni chiare. I campi essenziali restano subito visibili, quelli secondari sono raggruppati per contesto.</p>
                 </div>
-                <a href="/pages/clienti.php" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Torna ai Clienti
-                </a>
+                <div class="quick-actions align-self-start">
+                    <a href="/pages/clienti.php" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Torna ai Clienti
+                    </a>
+                </div>
             </div>
-        </div>
+        </section>
 
         <?php if($message): ?>
             <div class="alert alert-<?php echo $message_type; ?> alert-dismissible fade show" role="alert">
@@ -94,15 +97,30 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
             </div>
         <?php endif; ?>
 
-        <div class="card">
+        <div class="section-nav" data-section-nav>
+            <button type="button" class="section-nav__link active" data-target-section="cliente-anagrafica">Anagrafica</button>
+            <button type="button" class="section-nav__link" data-target-section="cliente-residenza">Residenza</button>
+            <button type="button" class="section-nav__link" data-target-section="cliente-patente">Patente</button>
+            <button type="button" class="section-nav__link" data-target-section="cliente-documento">Documento</button>
+            <button type="button" class="section-nav__link" data-target-section="cliente-note">Note</button>
+        </div>
+
+        <div class="card section-card">
             <div class="card-body">
-                <form method="POST" id="formCliente">
+                <form method="POST" id="formCliente" data-dirty-track>
                     <?php echo csrf_input(); ?>
                     <input type="hidden" name="action" value="<?php echo $isEdit ? 'update' : 'create'; ?>">
                     <input type="hidden" name="cliente_id" value="<?php echo $cliente['id'] ?? ''; ?>">
 
-                    <div class="mb-4">
-                        <h6 class="mb-3 text-uppercase text-muted">Anagrafica</h6>
+                    <div class="form-layout">
+                    <section class="mb-4" id="cliente-anagrafica">
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Essenziale</div>
+                                <h6 class="section-card__title">Anagrafica</h6>
+                                <p class="section-card__hint">Parti da codice fiscale, nominativo e contatti principali.</p>
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="clienteCodiceFiscale" class="form-label">Codice Fiscale</label>
@@ -136,10 +154,16 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </section>
 
-                    <div class="mb-4">
-                        <h6 class="mb-3 text-uppercase text-muted">Residenza</h6>
+                    <section class="mb-4" id="cliente-residenza">
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Contatto</div>
+                                <h6 class="section-card__title">Residenza</h6>
+                                <p class="section-card__hint">Usa i suggerimenti per la citta per ridurre errori di digitazione.</p>
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="col-md-8 mb-3">
                                 <label for="clienteIndirizzo" class="form-label">Indirizzo</label>
@@ -153,10 +177,15 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </section>
 
                     <div class="mb-4">
-                        <h6 class="mb-3 text-uppercase text-muted">Tipo Pratica</h6>
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Contesto</div>
+                                <h6 class="section-card__title">Tipo Pratica</h6>
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="clienteTipoPratica" class="form-label">Tipo Pratica *</label>
@@ -174,8 +203,14 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <h6 class="mb-3 text-uppercase text-muted">Patente</h6>
+                    <section class="mb-4" id="cliente-patente">
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Titolo abilitativo</div>
+                                <h6 class="section-card__title">Patente</h6>
+                                <p class="section-card__hint">Se hai solo i dati essenziali, puoi completare il resto in un secondo momento.</p>
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="col-md-4 mb-3">
                                 <label for="clienteNumeroPatente" class="form-label">Numero Patente</label>
@@ -190,10 +225,15 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
                                 <input type="date" class="form-control" id="clienteDataScadenza" name="data_scadenza_patente" value="<?php echo htmlspecialchars($cliente['data_scadenza_patente'] ?? ''); ?>">
                             </div>
                         </div>
-                    </div>
+                    </section>
 
                     <div class="mb-4">
-                        <h6 class="mb-3 text-uppercase text-muted">Iscrizione</h6>
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Tracking</div>
+                                <h6 class="section-card__title">Iscrizione</h6>
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="clienteNumeroRegistro" class="form-label">Numero Registro Iscrizione</label>
@@ -207,15 +247,26 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
                     </div>
 
                     <div class="mb-4">
-                        <h6 class="mb-3 text-uppercase text-muted">Idoneità</h6>
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Preferenze</div>
+                                <h6 class="section-card__title">Idoneita</h6>
+                            </div>
+                        </div>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="clienteOcchiali" name="occhiali" value="1" <?php echo !empty($cliente['occhiali']) ? 'checked' : ''; ?>>
                             <label class="form-check-label" for="clienteOcchiali">Uso occhiali</label>
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <h6 class="mb-3 text-uppercase text-muted">Documento</h6>
+                    <section class="mb-4" id="cliente-documento">
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Documento</div>
+                                <h6 class="section-card__title">Riferimenti documento</h6>
+                                <p class="section-card__hint">Compila emissione e scadenza quando vuoi usare il cliente anche per controlli amministrativi.</p>
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="col-md-4 mb-3">
                                 <label for="clienteDocumentoTipo" class="form-label">Tipo Documento</label>
@@ -234,18 +285,29 @@ $title = $isEdit ? 'Modifica Cliente' : 'Nuovo Cliente';
                                 <input type="date" class="form-control" id="clienteDocumentoScadenza" name="documento_data_scadenza" value="<?php echo htmlspecialchars($cliente['documento_data_scadenza'] ?? ''); ?>">
                             </div>
                         </div>
-                    </div>
+                    </section>
 
-                    <div class="mb-3">
-                        <h6 class="mb-3 text-uppercase text-muted">Note</h6>
+                    <section class="mb-3" id="cliente-note">
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Chiusura</div>
+                                <h6 class="section-card__title">Note</h6>
+                            </div>
+                        </div>
                         <textarea class="form-control" id="clienteNote" name="note" rows="3"><?php echo htmlspecialchars($cliente['note'] ?? ''); ?></textarea>
-                    </div>
+                    </section>
 
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-save"></i> Salva
-                        </button>
-                        <a href="/pages/clienti.php" class="btn btn-outline-secondary">Annulla</a>
+                    <div class="sticky-form-actions">
+                        <div class="sticky-form-actions__meta">
+                            I campi con `*` sono obbligatori. Se provi a lasciare la pagina con modifiche non salvate, verrai avvisato.
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Salva
+                            </button>
+                            <a href="/pages/clienti.php" class="btn btn-outline-secondary">Annulla</a>
+                        </div>
+                    </div>
                     </div>
                 </form>
             </div>

@@ -550,6 +550,11 @@ function getAgendaGuide($filters = []) {
         $sql .= " AND ag.cliente_id = ?";
         $params[] = $filters['cliente_id'];
     }
+
+    if(!empty($filters['pratica_id'])) {
+        $sql .= " AND ag.pratica_id = ?";
+        $params[] = $filters['pratica_id'];
+    }
     
     $sql .= " ORDER BY ag.data_guida, ag.orario_inizio";
     
@@ -919,6 +924,7 @@ function getNotificationSummary() {
     $db = getDB();
     $today = date('Y-m-d');
     $tomorrow = date('Y-m-d', strtotime('+1 day'));
+    $warningDate = date('Y-m-d', strtotime('+30 days'));
 
     $stmt = $db->prepare("SELECT COUNT(*) as total FROM agenda_guide WHERE data_guida = ?");
     $stmt->execute([$today]);
@@ -931,11 +937,491 @@ function getNotificationSummary() {
     $stmt = $db->query("SELECT COUNT(*) as total FROM pratiche WHERE residuo > 0");
     $scoperte = (int)$stmt->fetch()['total'];
 
+    $stmt = $db->prepare("
+        SELECT COUNT(*) as total
+        FROM clienti
+        WHERE
+            (data_scadenza_patente IS NOT NULL AND data_scadenza_patente <= ?)
+            OR
+            (documento_data_scadenza IS NOT NULL AND documento_data_scadenza <= ?)
+    ");
+    $stmt->execute([$warningDate, $warningDate]);
+    $documentiInScadenza = (int)$stmt->fetch()['total'];
+
     return [
         'today_guides' => $todayCount,
         'tomorrow_guides' => $tomorrowCount,
-        'pratiche_scoperte' => $scoperte
+        'pratiche_scoperte' => $scoperte,
+        'documenti_in_scadenza' => $documentiInScadenza
     ];
+}
+
+function getDaysUntilDate($date) {
+    if (empty($date)) {
+        return null;
+    }
+
+    $today = new DateTime(date('Y-m-d'));
+    $target = new DateTime(date('Y-m-d', strtotime($date)));
+    return (int)$today->diff($target)->format('%r%a');
+}
+
+function buildStatusToneFromDays($days) {
+    if ($days === null) {
+        return 'neutral';
+    }
+    if ($days < 0) {
+        return 'danger';
+    }
+    if ($days <= 15) {
+        return 'warning';
+    }
+    return 'success';
+}
+
+function getClienteAlerts($cliente) {
+    $alerts = [];
+
+    $patenteDays = getDaysUntilDate($cliente['data_scadenza_patente'] ?? null);
+    if ($patenteDays !== null) {
+        $alerts[] = [
+            'title' => 'Scadenza patente',
+            'date' => $cliente['data_scadenza_patente'],
+            'days' => $patenteDays,
+            'tone' => buildStatusToneFromDays($patenteDays),
+            'message' => $patenteDays < 0
+                ? 'Patente scaduta da ' . abs($patenteDays) . ' giorni'
+                : ($patenteDays === 0
+                    ? 'Patente in scadenza oggi'
+                    : 'Patente in scadenza tra ' . $patenteDays . ' giorni')
+        ];
+    }
+
+    $documentoDays = getDaysUntilDate($cliente['documento_data_scadenza'] ?? null);
+    if ($documentoDays !== null) {
+        $alerts[] = [
+            'title' => 'Scadenza documento',
+            'date' => $cliente['documento_data_scadenza'],
+            'days' => $documentoDays,
+            'tone' => buildStatusToneFromDays($documentoDays),
+            'message' => $documentoDays < 0
+                ? 'Documento scaduto da ' . abs($documentoDays) . ' giorni'
+                : ($documentoDays === 0
+                    ? 'Documento in scadenza oggi'
+                    : 'Documento in scadenza tra ' . $documentoDays . ' giorni')
+        ];
+    }
+
+    usort($alerts, function ($a, $b) {
+        return ($a['days'] ?? 99999) <=> ($b['days'] ?? 99999);
+    });
+
+    return $alerts;
+}
+
+function getOperationalAlerts($limit = 8) {
+    $db = getDB();
+    $alerts = [];
+    $today = date('Y-m-d');
+    $warningDate = date('Y-m-d', strtotime('+30 days'));
+
+    $stmt = $db->query("
+        SELECT ag.id, ag.data_guida, ag.orario_inizio, ag.pratica_id,
+               CONCAT(c.cognome, ' ', c.nome) AS cliente_nome
+        FROM agenda_guide ag
+        INNER JOIN clienti c ON ag.cliente_id = c.id
+        WHERE ag.data_guida BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY)
+        ORDER BY ag.data_guida ASC, ag.orario_inizio ASC
+        LIMIT 5
+    ");
+    foreach ($stmt->fetchAll() as $row) {
+        $days = getDaysUntilDate($row['data_guida']);
+        $when = $days === 0 ? 'Oggi' : ($days === 1 ? 'Domani' : 'Tra ' . $days . ' giorni');
+        $alerts[] = [
+            'priority' => $days === 0 ? 1 : 2,
+            'tone' => $days === 0 ? 'info' : 'primary',
+            'icon' => 'calendar3',
+            'title' => 'Guida programmata',
+            'meta' => $when . ' alle ' . substr((string)$row['orario_inizio'], 0, 5),
+            'description' => $row['cliente_nome'],
+            'href' => !empty($row['pratica_id']) ? '/pages/pratica_dettaglio.php?id=' . (int)$row['pratica_id'] : '/pages/agenda.php'
+        ];
+    }
+
+    $stmt = $db->query("
+        SELECT p.id, p.residuo, p.tipo_pratica, CONCAT(c.cognome, ' ', c.nome) AS cliente_nome
+        FROM pratiche p
+        INNER JOIN clienti c ON p.cliente_id = c.id
+        WHERE p.residuo > 0
+        ORDER BY p.residuo DESC, p.data_apertura ASC
+        LIMIT 5
+    ");
+    foreach ($stmt->fetchAll() as $row) {
+        $alerts[] = [
+            'priority' => 3,
+            'tone' => 'warning',
+            'icon' => 'credit-card',
+            'title' => 'Residuo aperto',
+            'meta' => formatMoney($row['residuo']),
+            'description' => $row['cliente_nome'] . ' · ' . $row['tipo_pratica'],
+            'href' => '/pages/pratica_dettaglio.php?id=' . (int)$row['id']
+        ];
+    }
+
+    $stmt = $db->prepare("
+        SELECT id, nome, cognome, data_scadenza_patente, documento_data_scadenza
+        FROM clienti
+        WHERE
+            (data_scadenza_patente IS NOT NULL AND data_scadenza_patente <= ?)
+            OR
+            (documento_data_scadenza IS NOT NULL AND documento_data_scadenza <= ?)
+        ORDER BY
+            LEAST(
+                COALESCE(data_scadenza_patente, '9999-12-31'),
+                COALESCE(documento_data_scadenza, '9999-12-31')
+            ) ASC
+        LIMIT 5
+    ");
+    $stmt->execute([$warningDate, $warningDate]);
+    foreach ($stmt->fetchAll() as $row) {
+        $patenteDays = getDaysUntilDate($row['data_scadenza_patente'] ?? null);
+        $documentoDays = getDaysUntilDate($row['documento_data_scadenza'] ?? null);
+        $bestDays = null;
+        $bestLabel = '';
+
+        if ($patenteDays !== null && ($bestDays === null || $patenteDays < $bestDays)) {
+            $bestDays = $patenteDays;
+            $bestLabel = 'Patente';
+        }
+        if ($documentoDays !== null && ($bestDays === null || $documentoDays < $bestDays)) {
+            $bestDays = $documentoDays;
+            $bestLabel = 'Documento';
+        }
+
+        $alerts[] = [
+            'priority' => $bestDays !== null && $bestDays < 0 ? 1 : 2,
+            'tone' => buildStatusToneFromDays($bestDays),
+            'icon' => 'card-text',
+            'title' => $bestLabel . ' in scadenza',
+            'meta' => $bestDays < 0
+                ? 'Scaduto da ' . abs($bestDays) . ' giorni'
+                : ($bestDays === 0 ? 'Scade oggi' : 'Scade tra ' . $bestDays . ' giorni'),
+            'description' => trim($row['cognome'] . ' ' . $row['nome']),
+            'href' => '/pages/cliente_dettaglio.php?id=' . (int)$row['id']
+        ];
+    }
+
+    usort($alerts, function ($a, $b) {
+        if ($a['priority'] === $b['priority']) {
+            return strcmp($a['title'], $b['title']);
+        }
+        return $a['priority'] <=> $b['priority'];
+    });
+
+    return array_slice($alerts, 0, $limit);
+}
+
+function buildChecklistItem($label, $done, $hint, $target = null) {
+    return [
+        'label' => $label,
+        'done' => (bool)$done,
+        'hint' => $hint,
+        'target' => $target
+    ];
+}
+
+function getPraticaWorkflow($pratica, $cliente, $pagamenti = [], $allegati = [], $guide = []) {
+    $hasContact = !empty($cliente['telefono']) || !empty($cliente['email']);
+    $hasValue = (float)($pratica['totale_previsto'] ?? 0) > 0;
+    $hasDocuments = !empty($cliente['documento_tipo']) && !empty($cliente['documento_data_scadenza']);
+    $hasAttachments = count($allegati) > 0;
+    $hasPlanning = count($guide) > 0 || !empty($pratica['data_esame']) || !empty($pratica['data_richiesta_rinnovo']);
+    $hasPayments = (float)($pratica['totale_pagato'] ?? 0) > 0 || !$hasValue;
+    $isClosed = ($pratica['stato'] ?? '') === 'Completata' || (
+        (float)($pratica['residuo'] ?? 0) <= 0
+        && (($pratica['stato'] ?? '') === 'In corso' || ($pratica['stato'] ?? '') === 'Completata')
+    );
+
+    $items = [
+        buildChecklistItem('Contatti cliente pronti', $hasContact, $hasContact ? 'Telefono o email presenti' : 'Aggiungi almeno un recapito'),
+        buildChecklistItem('Valore pratica definito', $hasValue, $hasValue ? 'Totale previsto impostato' : 'Inserisci il totale previsto'),
+        buildChecklistItem('Documento cliente verificato', $hasDocuments, $hasDocuments ? 'Documento con scadenza registrata' : 'Manca il documento o la sua scadenza'),
+        buildChecklistItem('Allegati operativi presenti', $hasAttachments, $hasAttachments ? count($allegati) . ' allegati caricati' : 'Carica almeno un allegato utile'),
+        buildChecklistItem('Attivita pianificate', $hasPlanning, $hasPlanning ? 'Esame, rinnovo o guida pianificata' : 'Programma la prossima attivita'),
+        buildChecklistItem('Incasso avviato', $hasPayments, $hasPayments ? formatMoney($pratica['totale_pagato'] ?? 0) . ' registrati' : 'Registra un acconto o saldo'),
+        buildChecklistItem('Chiusura pratica', $isClosed, $isClosed ? 'Pratica economicamente e operativamente chiusa' : 'Completa iter e saldo finale'),
+    ];
+
+    $doneCount = count(array_filter($items, fn($item) => $item['done']));
+    $progress = count($items) > 0 ? (int)round(($doneCount / count($items)) * 100) : 0;
+
+    $nextAction = 'Pratica sotto controllo.';
+    foreach ($items as $item) {
+        if (!$item['done']) {
+            $nextAction = $item['hint'];
+            break;
+        }
+    }
+
+    return [
+        'items' => $items,
+        'done' => $doneCount,
+        'total' => count($items),
+        'progress' => $progress,
+        'next_action' => $nextAction
+    ];
+}
+
+function mapAuditActionLabel($action, $entity) {
+    $action = strtolower((string)$action);
+    $entity = strtolower((string)$entity);
+    $labels = [
+        'create:cliente' => 'Cliente creato',
+        'update:cliente' => 'Scheda cliente aggiornata',
+        'create:pratica' => 'Pratica creata',
+        'update:pratica' => 'Pratica aggiornata',
+        'create:pagamento' => 'Pagamento registrato',
+        'upload:allegato' => 'Allegato caricato',
+        'delete:allegato' => 'Allegato eliminato',
+    ];
+    return $labels[$action . ':' . $entity] ?? ucfirst($action) . ' ' . $entity;
+}
+
+function getPraticaTimeline($praticaId, $clienteId = null, $limit = 20) {
+    $db = getDB();
+    $events = [];
+
+    $pratica = getPraticaById($praticaId);
+    if ($pratica) {
+        $events[] = [
+            'date' => $pratica['data_apertura'] ?? date('Y-m-d'),
+            'title' => 'Pratica aperta',
+            'meta' => $pratica['tipo_pratica'] ?? '',
+            'icon' => 'file-earmark-text',
+            'tone' => 'primary'
+        ];
+    }
+
+    foreach (getPagamenti(['pratica_id' => $praticaId]) as $pagamento) {
+        $events[] = [
+            'date' => $pagamento['data_pagamento'],
+            'title' => 'Pagamento registrato',
+            'meta' => formatMoney($pagamento['importo']) . ' · ' . ($pagamento['metodo_pagamento'] ?? ''),
+            'icon' => 'credit-card',
+            'tone' => 'success'
+        ];
+    }
+
+    foreach (getAgendaGuide(['pratica_id' => $praticaId]) as $guida) {
+        $events[] = [
+            'date' => $guida['data_guida'],
+            'title' => 'Guida pianificata',
+            'meta' => substr((string)$guida['orario_inizio'], 0, 5) . ' - ' . substr((string)$guida['orario_fine'], 0, 5),
+            'icon' => 'calendar3',
+            'tone' => 'info'
+        ];
+    }
+
+    foreach (getPraticaAllegati($praticaId) as $allegato) {
+        $events[] = [
+            'date' => $allegato['data_upload'],
+            'title' => 'Allegato caricato',
+            'meta' => $allegato['filename_original'],
+            'icon' => 'paperclip',
+            'tone' => 'secondary'
+        ];
+    }
+
+    $stmt = $db->prepare("
+        SELECT action, entity, details, created_at
+        FROM audit_log
+        WHERE
+            (entity = 'pratica' AND entity_id = ?)
+            OR
+            (entity = 'pagamento' AND details LIKE ?)
+            OR
+            (entity = 'allegato' AND entity_id = ?)
+        ORDER BY created_at DESC
+        LIMIT 20
+    ");
+    $stmt->execute([$praticaId, '%pratica_id=' . $praticaId . '%', $praticaId]);
+    foreach ($stmt->fetchAll() as $audit) {
+        $events[] = [
+            'date' => $audit['created_at'],
+            'title' => mapAuditActionLabel($audit['action'], $audit['entity']),
+            'meta' => $audit['details'] ?? '',
+            'icon' => 'clock',
+            'tone' => 'warning'
+        ];
+    }
+
+    usort($events, function ($a, $b) {
+        return strtotime($b['date']) <=> strtotime($a['date']);
+    });
+
+    return array_slice($events, 0, $limit);
+}
+
+function getClienteTimeline($clienteId, $limit = 20) {
+    $db = getDB();
+    $events = [];
+    $cliente = getClienteById($clienteId);
+
+    if ($cliente) {
+        $events[] = [
+            'date' => $cliente['data_creazione'] ?? date('Y-m-d'),
+            'title' => 'Cliente inserito',
+            'meta' => trim(($cliente['cognome'] ?? '') . ' ' . ($cliente['nome'] ?? '')),
+            'icon' => 'person',
+            'tone' => 'primary'
+        ];
+    }
+
+    foreach (getPratiche(['cliente_id' => $clienteId]) as $pratica) {
+        $events[] = [
+            'date' => $pratica['data_apertura'],
+            'title' => 'Pratica aperta',
+            'meta' => '#' . $pratica['id'] . ' · ' . $pratica['tipo_pratica'],
+            'icon' => 'file-earmark-text',
+            'tone' => 'info'
+        ];
+    }
+
+    foreach (getPagamenti(['cliente_id' => $clienteId]) as $pagamento) {
+        $events[] = [
+            'date' => $pagamento['data_pagamento'],
+            'title' => 'Pagamento registrato',
+            'meta' => formatMoney($pagamento['importo']) . ' · pratica #' . $pagamento['pratica_id'],
+            'icon' => 'credit-card',
+            'tone' => 'success'
+        ];
+    }
+
+    foreach (getAgendaGuide(['cliente_id' => $clienteId]) as $guida) {
+        $events[] = [
+            'date' => $guida['data_guida'],
+            'title' => 'Guida pianificata',
+            'meta' => substr((string)$guida['orario_inizio'], 0, 5) . ' - ' . substr((string)$guida['orario_fine'], 0, 5),
+            'icon' => 'calendar3',
+            'tone' => 'warning'
+        ];
+    }
+
+    $stmt = $db->prepare("
+        SELECT action, entity, details, created_at
+        FROM audit_log
+        WHERE entity = 'cliente' AND entity_id = ?
+        ORDER BY created_at DESC
+        LIMIT 20
+    ");
+    $stmt->execute([$clienteId]);
+    foreach ($stmt->fetchAll() as $audit) {
+        $events[] = [
+            'date' => $audit['created_at'],
+            'title' => mapAuditActionLabel($audit['action'], $audit['entity']),
+            'meta' => $audit['details'] ?? '',
+            'icon' => 'clock',
+            'tone' => 'secondary'
+        ];
+    }
+
+    usort($events, function ($a, $b) {
+        return strtotime($b['date']) <=> strtotime($a['date']);
+    });
+
+    return array_slice($events, 0, $limit);
+}
+
+function searchGlobalEntities($query, $limit = 8) {
+    $db = getDB();
+    $limit = max(1, min(20, (int)$limit));
+    $like = '%' . $query . '%';
+    $results = [];
+    $perType = max(2, (int)ceil($limit / 2));
+
+    $stmt = $db->prepare("
+        SELECT id, nome, cognome, email, codice_fiscale
+        FROM clienti
+        WHERE nome LIKE ? OR cognome LIKE ? OR telefono LIKE ? OR email LIKE ? OR codice_fiscale LIKE ?
+        ORDER BY cognome ASC, nome ASC
+        LIMIT ?
+    ");
+    $stmt->bindValue(1, $like);
+    $stmt->bindValue(2, $like);
+    $stmt->bindValue(3, $like);
+    $stmt->bindValue(4, $like);
+    $stmt->bindValue(5, $like);
+    $stmt->bindValue(6, $perType, PDO::PARAM_INT);
+    $stmt->execute();
+    foreach ($stmt->fetchAll() as $row) {
+        $results[] = [
+            'type' => 'cliente',
+            'type_label' => 'Cliente',
+            'icon' => 'person',
+            'title' => trim($row['cognome'] . ' ' . $row['nome']),
+            'meta' => implode(' · ', array_filter([$row['email'] ?? '', $row['codice_fiscale'] ?? ''])),
+            'url' => '/pages/cliente_dettaglio.php?id=' . (int)$row['id']
+        ];
+    }
+
+    $stmt = $db->prepare("
+        SELECT p.id, p.tipo_pratica, p.stato, CONCAT(c.cognome, ' ', c.nome) AS cliente_nome
+        FROM pratiche p
+        INNER JOIN clienti c ON p.cliente_id = c.id
+        WHERE
+            p.tipo_pratica LIKE ?
+            OR p.tipo_altro_dettaglio LIKE ?
+            OR CONCAT(c.cognome, ' ', c.nome) LIKE ?
+            OR CAST(p.id AS CHAR) LIKE ?
+        ORDER BY p.data_apertura DESC, p.id DESC
+        LIMIT ?
+    ");
+    $stmt->bindValue(1, $like);
+    $stmt->bindValue(2, $like);
+    $stmt->bindValue(3, $like);
+    $stmt->bindValue(4, $like);
+    $stmt->bindValue(5, $perType, PDO::PARAM_INT);
+    $stmt->execute();
+    foreach ($stmt->fetchAll() as $row) {
+        $results[] = [
+            'type' => 'pratica',
+            'type_label' => 'Pratica',
+            'icon' => 'file-earmark-text',
+            'title' => 'Pratica #' . $row['id'] . ' · ' . $row['tipo_pratica'],
+            'meta' => $row['cliente_nome'] . ' · ' . $row['stato'],
+            'url' => '/pages/pratica_dettaglio.php?id=' . (int)$row['id']
+        ];
+    }
+
+    $stmt = $db->prepare("
+        SELECT pg.id, pg.importo, pg.data_pagamento, pg.pratica_id,
+               CONCAT(c.cognome, ' ', c.nome) AS cliente_nome
+        FROM pagamenti pg
+        INNER JOIN clienti c ON pg.cliente_id = c.id
+        WHERE
+            CONCAT(c.cognome, ' ', c.nome) LIKE ?
+            OR CAST(pg.pratica_id AS CHAR) LIKE ?
+            OR CAST(pg.importo AS CHAR) LIKE ?
+        ORDER BY pg.data_pagamento DESC, pg.id DESC
+        LIMIT ?
+    ");
+    $stmt->bindValue(1, $like);
+    $stmt->bindValue(2, $like);
+    $stmt->bindValue(3, $like);
+    $stmt->bindValue(4, max(2, $limit - count($results)), PDO::PARAM_INT);
+    $stmt->execute();
+    foreach ($stmt->fetchAll() as $row) {
+        $results[] = [
+            'type' => 'pagamento',
+            'type_label' => 'Pagamento',
+            'icon' => 'credit-card',
+            'title' => formatMoney($row['importo']) . ' · pratica #' . $row['pratica_id'],
+            'meta' => $row['cliente_nome'] . ' · ' . formatDate($row['data_pagamento']),
+            'url' => '/pages/pratica_dettaglio.php?id=' . (int)$row['pratica_id']
+        ];
+    }
+
+    return array_slice($results, 0, $limit);
 }
 
 // ============================================

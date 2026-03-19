@@ -168,6 +168,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
 
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="card section-card">
+                    <div class="card-body">
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Strumenti Admin</div>
+                                <h2 class="section-card__title">Gestione avanzata</h2>
+                                <p class="section-card__hint">Le funzioni amministrative avanzate sono raccolte qui per mantenere la sidebar principale piu pulita.</p>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <a href="/pages/audit.php" class="btn btn-outline-secondary w-100 text-start">
+                                    <i class="bi bi-shield-check"></i> Audit Log
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="/pages/backup.php" class="btn btn-outline-secondary w-100 text-start">
+                                    <i class="bi bi-database-down"></i> Backup/Restore
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="/pages/automation.php" class="btn btn-outline-secondary w-100 text-start">
+                                    <i class="bi bi-gear"></i> Automazioni
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <form method="POST" id="settingsForm">
             <?php echo csrf_input(); ?>
 

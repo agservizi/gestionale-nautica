@@ -77,6 +77,10 @@ $allegati = getPraticaAllegati($pratica_id);
 // Carica cliente
 $cliente = getClienteById($pratica['cliente_id']);
 $altroSottocategorie = getAltroSottocategorie();
+$guidePratica = getAgendaGuide(['pratica_id' => $pratica_id]);
+$workflow = getPraticaWorkflow($pratica, $cliente, $pagamenti, $allegati, $guidePratica);
+$clienteAlerts = getClienteAlerts($cliente);
+$timeline = getPraticaTimeline($pratica_id, $pratica['cliente_id'], 20);
 ?>
 
 <?php include __DIR__ . '/../includes/sidebar.php'; ?>
@@ -85,29 +89,26 @@ $altroSottocategorie = getAltroSottocategorie();
 <div id="content" class="content">
     
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
-        <div class="container-fluid">
-            <div class="d-flex align-items-center gap-2">
-                <button type="button" id="sidebarCollapseTop" class="btn btn-primary sidebar-toggle-btn">
-                    <i class="bi bi-list"></i>
-                </button>
-                <a href="pratiche.php" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Torna alle Pratiche
-                </a>
-            </div>
-            <div class="ms-auto">
-                <form class="d-flex" id="searchForm">
-                    <input class="form-control me-2" type="search" placeholder="Cerca cliente..." id="searchCliente">
-                    <button class="btn btn-outline-primary" type="submit">
-                        <i class="bi bi-search"></i>
-                    </button>
-                </form>
-            </div>
-        </div>
-    </nav>
+    <?php include __DIR__ . '/../includes/navbar.php'; ?>
     
     <!-- Page Content -->
     <div class="container-fluid py-4">
+
+        <div class="row mb-4">
+            <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <a href="pratiche.php" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Torna alle Pratiche
+                </a>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalModifica">
+                        <i class="bi bi-pencil"></i> Modifica pratica
+                    </button>
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalPagamento">
+                        <i class="bi bi-plus-lg"></i> Registra pagamento
+                    </button>
+                </div>
+            </div>
+        </div>
         
         <?php if($message): ?>
             <div class="alert alert-<?php echo $message_type; ?> alert-dismissible fade show" role="alert">
@@ -170,6 +171,102 @@ $altroSottocategorie = getAltroSottocategorie();
                 </div>
             </div>
         </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-xl-4">
+                <div class="card section-card h-100">
+                    <div class="card-body">
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Workflow pratica</div>
+                                <h2 class="section-card__title">Avanzamento operativo</h2>
+                                <p class="section-card__hint">Ti dice quanto la pratica e completa e qual e la prossima azione piu utile.</p>
+                            </div>
+                            <span class="workflow-score"><?php echo $workflow['progress']; ?>%</span>
+                        </div>
+                        <div class="workflow-progress">
+                            <span style="width: <?php echo $workflow['progress']; ?>%;"></span>
+                        </div>
+                        <p class="workflow-next"><strong>Prossima azione:</strong> <?php echo htmlspecialchars($workflow['next_action']); ?></p>
+                        <div class="checklist">
+                            <?php foreach ($workflow['items'] as $item): ?>
+                                <div class="checklist__item <?php echo $item['done'] ? 'is-done' : ''; ?>">
+                                    <span class="checklist__state"><i class="bi bi-<?php echo $item['done'] ? 'shield-check' : 'clock'; ?>"></i></span>
+                                    <span class="checklist__body">
+                                        <strong><?php echo htmlspecialchars($item['label']); ?></strong>
+                                        <small><?php echo htmlspecialchars($item['hint']); ?></small>
+                                    </span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-4">
+                <div class="card section-card h-100">
+                    <div class="card-body">
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Documenti e scadenze</div>
+                                <h2 class="section-card__title">Salute anagrafica del cliente</h2>
+                                <p class="section-card__hint">Documento, patente e allegati della pratica in un solo colpo d'occhio.</p>
+                            </div>
+                        </div>
+                        <div class="document-health">
+                            <div class="document-health__metric">
+                                <span class="document-health__label">Allegati</span>
+                                <strong><?php echo count($allegati); ?></strong>
+                            </div>
+                            <div class="document-health__metric">
+                                <span class="document-health__label">Guide collegate</span>
+                                <strong><?php echo count($guidePratica); ?></strong>
+                            </div>
+                        </div>
+                        <?php if (empty($clienteAlerts)): ?>
+                            <p class="text-muted mb-0">Nessuna scadenza cliente registrata o imminente.</p>
+                        <?php else: ?>
+                            <div class="insight-list mt-3">
+                                <?php foreach ($clienteAlerts as $alert): ?>
+                                    <div class="insight-item insight-item--<?php echo htmlspecialchars($alert['tone']); ?>">
+                                        <span class="insight-item__icon"><i class="bi bi-card-text"></i></span>
+                                        <span class="insight-item__body">
+                                            <strong><?php echo htmlspecialchars($alert['title']); ?></strong>
+                                            <small><?php echo htmlspecialchars($alert['message']); ?></small>
+                                        </span>
+                                        <span class="insight-item__meta"><?php echo htmlspecialchars(formatDate($alert['date'])); ?></span>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-4">
+                <div class="card section-card h-100">
+                    <div class="card-body">
+                        <div class="section-card__header">
+                            <div>
+                                <div class="section-card__eyebrow">Timeline</div>
+                                <h2 class="section-card__title">Ultimi movimenti pratica</h2>
+                                <p class="section-card__hint">Pagamenti, allegati, pianificazioni e modifiche recenti.</p>
+                            </div>
+                        </div>
+                        <div class="timeline timeline--compact">
+                            <?php foreach (array_slice($timeline, 0, 5) as $event): ?>
+                                <div class="timeline__item">
+                                    <span class="timeline__dot timeline__dot--<?php echo htmlspecialchars($event['tone']); ?>"></span>
+                                    <div class="timeline__body">
+                                        <strong><?php echo htmlspecialchars($event['title']); ?></strong>
+                                        <small><?php echo htmlspecialchars($event['meta']); ?></small>
+                                    </div>
+                                    <span class="timeline__date"><?php echo htmlspecialchars(formatDate($event['date'], 'd/m/Y H:i')); ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         
         <!-- Tabs -->
         <ul class="nav nav-tabs mb-4" role="tablist">
@@ -186,6 +283,11 @@ $altroSottocategorie = getAltroSottocategorie();
             <li class="nav-item">
                 <button class="nav-link" data-bs-toggle="tab" data-bs-target="#documenti">
                     <i class="bi bi-file-earmark"></i> Documenti
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#timeline">
+                    <i class="bi bi-clock"></i> Timeline (<?php echo count($timeline); ?>)
                 </button>
             </li>
         </ul>
@@ -442,6 +544,34 @@ $altroSottocategorie = getAltroSottocategorie();
                                         <?php endforeach; ?>
                                     </tbody>
                                 </table>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="timeline">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Timeline pratica</h5>
+                    </div>
+                    <div class="card-body">
+                        <?php if(empty($timeline)): ?>
+                            <p class="text-muted">Nessun evento registrato per questa pratica.</p>
+                        <?php else: ?>
+                            <div class="timeline">
+                                <?php foreach($timeline as $event): ?>
+                                    <div class="timeline__item">
+                                        <span class="timeline__dot timeline__dot--<?php echo htmlspecialchars($event['tone']); ?>"></span>
+                                        <div class="timeline__body">
+                                            <strong><?php echo htmlspecialchars($event['title']); ?></strong>
+                                            <?php if(!empty($event['meta'])): ?>
+                                                <small><?php echo htmlspecialchars($event['meta']); ?></small>
+                                            <?php endif; ?>
+                                        </div>
+                                        <span class="timeline__date"><?php echo htmlspecialchars(formatDate($event['date'], 'd/m/Y H:i')); ?></span>
+                                    </div>
+                                <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
                     </div>

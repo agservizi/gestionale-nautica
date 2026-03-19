@@ -1,10 +1,15 @@
         <!-- Sidebar -->
         <nav id="sidebar" class="sidebar">
             <div class="sidebar-header">
-                <div class="sidebar-logo" aria-label="<?php echo APP_NAME; ?>">
-                    <img src="/assets/icons/logo.svg" alt="<?php echo APP_NAME; ?>">
+                <div class="sidebar-brand">
+                    <div class="sidebar-logo" aria-label="<?php echo APP_NAME; ?>">
+                        <img src="/assets/icons/logo.svg" alt="<?php echo APP_NAME; ?>">
+                    </div>
+                    <div class="sidebar-brand-copy">
+                        <h3 class="sidebar-title">NautikaPro</h3>
+                        <small class="sidebar-subtitle">Gestione operativa</small>
+                    </div>
                 </div>
-                <h3 class="sidebar-title">NautikaPro</h3>
             </div>
             
             <?php $isDeveloper = function_exists('isDeveloper') && isDeveloper(); ?>
@@ -73,28 +78,10 @@
                                 <span class="link-text">Utenti</span>
                             </a>
                         </li>
-                        <li class="<?php echo $current_page == 'impostazioni' ? 'active' : ''; ?>">
+                        <li class="<?php echo in_array($current_page, ['impostazioni', 'audit', 'backup', 'automation'], true) ? 'active' : ''; ?>">
                             <a href="/pages/impostazioni.php" class="sidebar-link" data-tooltip="Impostazioni">
                                 <i class="bi bi-gear"></i>
                                 <span class="link-text">Impostazioni</span>
-                            </a>
-                        </li>
-                        <li class="<?php echo $current_page == 'audit' ? 'active' : ''; ?>">
-                            <a href="/pages/audit.php" class="sidebar-link" data-tooltip="Audit Log">
-                                <i class="bi bi-shield-check"></i>
-                                <span class="link-text">Audit Log</span>
-                            </a>
-                        </li>
-                        <li class="<?php echo $current_page == 'backup' ? 'active' : ''; ?>">
-                            <a href="/pages/backup.php" class="sidebar-link" data-tooltip="Backup/Restore">
-                                <i class="bi bi-database-down"></i>
-                                <span class="link-text">Backup/Restore</span>
-                            </a>
-                        </li>
-                        <li class="<?php echo $current_page == 'automation' ? 'active' : ''; ?>">
-                            <a href="/pages/automation.php" class="sidebar-link" data-tooltip="Automazioni">
-                                <i class="bi bi-gear"></i>
-                                <span class="link-text">Automazioni</span>
                             </a>
                         </li>
                     <?php endif; ?>
